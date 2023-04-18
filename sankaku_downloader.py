@@ -75,7 +75,7 @@ class Downloader_sankaku(Downloader):
             if '/post/show/' in self.url:
                 if 'chan.' in self.url:
                     id = self.soup.find(id ='post_id').attrs['value']
-                    self.url = 'https://chan.sankakucomplex.com/es/post/show/'+ id
+                    self.url = 'https://chan.sankakucomplex.com/post/show/'+ id
                     #self.url = self.soup.find(id='site-title').findAll('a')[1].attrs['href']
                 else:
                     id = get_id(self.url)
