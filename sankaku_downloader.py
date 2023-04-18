@@ -288,8 +288,10 @@ def get_imgs(url, title=None, cw=None, d=None, types=['img', 'gif', 'video'], se
         url_old = url
         soup = Soup(html)
         err = soup.find('div', class_='post-premium-browsing_error')
-        if err and not imgs:
-            raise errors.LoginRequired(err.text.strip())
+        if err:
+            if not imgs:
+                raise errors.LoginRequired(err.text.strip())
+            break
         
         if type == 'chan':
             articles = soup.find(class_='content').findAll('div', recursive=False)[1].findAll('span', recursive=False)
@@ -298,8 +300,8 @@ def get_imgs(url, title=None, cw=None, d=None, types=['img', 'gif', 'video'], se
         #articles = soup.select('.content > div:nth-child(2) > .thumb')
         #articles = soup.findAll('span', {'class': 'thumb'})
 
-        if not articles:
-            break
+        #if not articles:
+        #    break
 
         for article in articles:
             # 1183
