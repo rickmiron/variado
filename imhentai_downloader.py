@@ -7,7 +7,6 @@ import os
 import requests
 from utils import Downloader, LazyUrl, get_print, Soup, lazy, Session, clean_title
 from timee import sleep
-from error_printer import print_error
 from translator import tr_
 
 
@@ -42,57 +41,55 @@ class Downloader_imhentai(Downloader):
         return self.id
 
     def read(self):
-        imgs = get_imgs_www(self.soup, self.name, cw=self.cw)
+        self.title = self.name
+        imgs = get_imgs_www(self.url, self.soup, self.name, cw=self.cw, d=self)
         for img in imgs:
-            if isinstance(img, str):
-                self.urls.append(img)
-            else:
-                self.urls.append(img.url)
+            self.urls.append(img.url)
         self.title = self.name
 
-def get_imgs_www(soup, title=None, cw=None):
+def get_imgs_www(url, soup, title=None, cw=None, d=None):
     imgs = []
     leng = soup.find('div', class_='gallery_th').find('img').attrs['data-src']
     prefim = leng[:leng.rfind('/')+1]
     leng = soup.find('li', class_='pages').text.strip()
     leng = int(leng[7:]) + 1
-    EXTEN = ['.jpg','.png','.gif']
-    inex = 0
+
+    local_ids = {}
+    if cw is not None:
+        dir = cw.downloader.dir
+        try:
+            names = os.listdir(dir)
+        except Exception as e:
+            print(e)
+            names = []
+        for name in names:
+            id = os.path.splitext(name)[0]
+            local_ids[id] = os.path.join(dir, name)
+
+    url_imgs = set()
+    type = 0
     if cw is not None:
         cw.setTitle('{}  {}'.format(tr_('읽는 중...'), title))
-    for i in range(1, leng):
-        time.sleep(0.001)
-        pref = prefim + str(i)
-        if cw is not None:
-            cw.setTitle('{}  {} - {}'.format(tr_('읽는 중...'), title, i))
+    for id in range(1, leng):
+        time.sleep(0.02)
+        url_img = prefim + str(id)
+        if id % 25 == 0:
+            if cw is not None:
+                cw.setTitle('{}  {} - {}'.format(tr_('읽는 중...'), title, id))
+            else:
+                print(len(imgs), 'imgs')
+
+        if id in local_ids:
+            local = True
         else:
-            print(len(imgs), 'imgs')
-        for _ in range(3):
-            response = requests.head(pref + EXTEN[inex])
-            if response.status_code != 404:
-                imgs.append(pref + EXTEN[inex])
-                break
-            if inex < 2:
-                inex += 1
-                continue
-            inex = 0
-    """
-    exts = '.jpg'
-    for i in range(1, leng):
-        pref = prefim + str(i)
-        response = requests.head(pref + exts)
-        if response.status_code != 404:
-            imgs.append(pref + exts)
-            continue
-        for j in EXTEN:
-            if j == exts:
-                continue
-            response = requests.head(pref + j)
-            if response.status_code != 404:
-                imgs.append(pref + j)
-                exts = j
-                break
-    """
+            local = False
+        if url_img not in url_imgs:
+            info = Image(type , id, url_img, url, local=local, cw=cw, d=d)
+            type = info.type
+            url_imgs.add(info.url)
+            if local:
+                url_img = local_ids[id]
+            imgs.append(info)
     return imgs
 
 @LazyUrl.register
@@ -131,30 +128,25 @@ class Image:
             self.url = LazyUrl_imhentai(url, self.get, self)
 
     def get(self, url):
+        EXTEN = ['.jpg','.png','.gif']
         cw = self.cw
         print_ = get_print(cw)
-
-        for try_ in range(1):
-            
-            html = ''
-            try:
-                html = downloader.read_html(url, referer=self.referer, session=self.session)
-                soup = Soup(html)
-                highres = soup.find(id='post-info-size').find('a').attrs['href']
-                url = highres
-                break
-            except Exception as e:
-                e_msg = print_error(e)
-                if '429 Too many requests'.lower() in html.lower():
-                    t_sleep = 0 * min(try_ + 0, 1)
-                    e = '429 Too many requests... wait {} secs'.format(t_sleep)
-                else:
-                    t_sleep = 0
-                s = 'IM hentai failed to read image (id:{}): {}'.format(self.id, e)
-                print_(s)
-                sleep(t_sleep, cw)
-        else:
-            raise Exception('can not find image (id:{})\n{}'.format(self.id, e_msg))
+        try:
+            for _ in range(3):
+                response = requests.head(url + EXTEN[self.type])
+                if response.status_code != 404:
+                    url = url + EXTEN[self.type]
+                    break
+                if self.type < 2:
+                    self.type += 1
+                    continue
+                self.type = 0
+            else:
+                url = ''
+        except Exception as e:
+            s = 'IM hentai failed to read image (id:{}): {}'.format(self.id, e)
+            print_(s)
+            sleep(1, cw)
         soup = Soup('<p>{}</p>'.format(url))
         url = soup.string
         ext = os.path.splitext(url)[1].split('?')[0]
