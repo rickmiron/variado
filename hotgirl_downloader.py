@@ -4,7 +4,6 @@
 import downloader
 from utils import Downloader, Soup, lazy, Session, clean_title
 
-
 @Downloader.register
 class Downloader_tmohentai(Downloader):
     type = 'hotgirl'
@@ -15,6 +14,7 @@ class Downloader_tmohentai(Downloader):
     ACCEPT_COOKIES = [r'(.*\.)?(hotgirl\.asia)']
 
     def init(self):
+        self.referer = 'https://hotgirl.asia'
         self.session = Session()
         if '/?stype=slideshow' not in self.url :
             self.url += '/?stype=slideshow'
