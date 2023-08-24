@@ -31,7 +31,7 @@ class Downloader_tmohentai(Downloader):
 
     def read(self):
         imgs = get_imgs_www(self.soup)
-        num = 0
+        num = -1
         for img in imgs:
             num += 1
             self.urls.append(img)
@@ -40,6 +40,7 @@ class Downloader_tmohentai(Downloader):
 
 def get_imgs_www(soup):
     imgs = []
+    imgs.append(soup.find('meta', {'property': 'og:image'}).attrs['content'])
     views = soup.findAll('img', class_='center-block w-100')
     for imgv in views:
         imgs.append(imgv['src'].rstrip())
