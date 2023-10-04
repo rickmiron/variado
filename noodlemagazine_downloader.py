@@ -102,8 +102,8 @@ class Downloader_noodlemagazine(Downloader):
             videos = [Video(href, cw, session) for href in hrefs]
             video = self.process_playlist(info['title'], videos)
         self.setIcon(thumba(video.thumb))
-        #self.enableSegment()
-        self.enableSegment(n_threads=8)
+        self.enableSegment()
+        #self.enableSegment(n_threads=8)
         #self.enableSegment(chunk=524288)
         #self.enableSegment(overwrite=True)
 
