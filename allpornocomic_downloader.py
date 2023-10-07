@@ -17,7 +17,14 @@ class Downloader_allporncomic(Downloader):
     user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
 
     def read(self):
-        imgs = get_imgs_all(self.url, cw=self.cw)
+        no = self.url[self.url.find('a'):].split('/')
+        num = len(no) - 1
+        if no[num]:
+            num += 1
+        if num > 3:
+            imgs = get_imgs_single(Page(self.url, ''))
+        else:
+            imgs = get_imgs_all(self.url, cw=self.cw)
         if isinstance(imgs['data'][0], Video):
             self.enableSegment()#n_threads=4
         for img in imgs['data']:
@@ -41,11 +48,36 @@ class Video:
         self.filename = page.title  + '.mp4'
         self.url = LazyUrl(page.url, lambda _: url, self)
 
+def get_imgs_single(page):
+    soup = get_soup(page.url)
+    views = soup.find('ol').find_all('li')
+    info = {}
+    info['title'] = views[2].text.strip()
+    page.title = views[3].text.strip()
+    view = soup.find_all('img', class_='wp-manga-chapter-img')
+    imgs = []
+    if view:
+        for img in view:
+            src = img['data-src']
+            img = Image(src, page, len(imgs))
+            imgs.append(img)
+    else:
+        view = soup.find('source')
+        src = view['src']
+        vid = Video(src, page)
+        imgs.append(vid)
+    info['data'] = imgs
+    return info
+
+
+def get_soup(url):
+    response = requests.get(url)
+    response.raise_for_status()
+    return BeautifulSoup(response.text, 'html.parser')
+
 @try_n(2)
 def get_imgs(page):
-    response = requests.get(page.url)
-    response.raise_for_status()
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = get_soup(page.url)
     view = soup.find_all('img', class_='wp-manga-chapter-img')
     imgs = []
     if view:
@@ -64,14 +96,8 @@ def get_pages(url):
     print(url)
     for _ in range(4):
         try:
-            response = requests.get(url)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
+            soup = get_soup(url)
             view = soup.find_all('li', class_='wp-manga-chapter')
-            if view:
-                break
-            else:
-                view = soup.find('div', class_='select-pagination')
             if not view:
                 raise Exception('no view')
             break
