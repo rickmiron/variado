@@ -18,6 +18,8 @@ class Downloader_allporncomic(Downloader):
 
     def read(self):
         imgs = get_imgs_all(self.url, cw=self.cw)
+        if isinstance(imgs['data'][0], Video):
+            self.enableSegment()#n_threads=4
         for img in imgs['data']:
             self.urls.append(img.url)
         self.title = imgs['title']
@@ -34,6 +36,11 @@ class Image:
         self.filename = '{}/{:04}{}'.format(page.title, p, ext)
         self.url = LazyUrl(page.url, lambda _: url, self)
 
+class Video:
+    def __init__(self, url, page):
+        self.filename = page.title  + '.mp4'
+        self.url = LazyUrl(page.url, lambda _: url, self)
+
 @try_n(2)
 def get_imgs(page):
     response = requests.get(page.url)
@@ -41,22 +48,30 @@ def get_imgs(page):
     soup = BeautifulSoup(response.text, 'html.parser')
     view = soup.find_all('img', class_='wp-manga-chapter-img')
     imgs = []
-    for img in view:
-        src = img['data-src']
-        img = Image(src, page, len(imgs))
-        imgs.append(img)
+    if view:
+        for img in view:
+            src = img['data-src']
+            img = Image(src, page, len(imgs))
+            imgs.append(img)
+    else:
+        view = soup.find('source')
+        src = view['src']
+        vid = Video(src, page)
+        imgs.append(vid)
     return imgs
 
 def get_pages(url):
-    urls = set()
     print(url)
-    info = {}
     for _ in range(4):
         try:
             response = requests.get(url)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'html.parser')
             view = soup.find_all('li', class_='wp-manga-chapter')
+            if view:
+                break
+            else:
+                view = soup.find('div', class_='select-pagination')
             if not view:
                 raise Exception('no view')
             break
@@ -65,6 +80,8 @@ def get_pages(url):
             print(e)
     else:
         raise e_
+    urls = set()
+    info = {}
     info['title'] = clean_title(soup.find('h1').text.strip())
     pages = []
     for li in view:
