@@ -30,7 +30,7 @@ class Video:
         if getattr(m, 'live', None) is not None:
             m = m.live
         self.url = LazyUrl(url, lambda _: m, self)
-
+    
     @try_n(2)
     def ofuscado(self, url):
         '''
@@ -43,6 +43,10 @@ class Video:
             soup = downloader.read_soup(url,header=headerw)
         except Exception as e:
             print_(print_error(e))
+        codigo = soup.find('meta', {'property': 'og:url'}).attrs['content']
+        codigo = codigo[codigo.rfind('/')+1:].upper()
+        title = soup.find('h1').text.strip()
+        self.filename = clean_title(codigo + title[title.find(' '):]) + '.mp4'
         codigo = soup.findAll('script', {'type': 'text/javascript'})[2].text.strip()
         un = codigo.find('eval(')
         codigo = codigo[un:codigo.find('.split(',un)]
@@ -59,9 +63,7 @@ class Video:
         for i in range(len(k_array)):
             bi = base(i)
             d[bi] = k_array[i] or bi
-        file = re.sub(r'\b\w+\b', lambda x: d[x.group()], inp)
-        self.filename = clean_title(soup.find('h1').text.strip() + '.mp4')
-        return file
+        return re.sub(r'\b\w+\b', lambda x: d[x.group()], inp)
 
 class Downloader_missav(Downloader):
     '''
