@@ -50,8 +50,8 @@ class Video:
         if un == -1:
             un = len(title)
         self.filename = clean_title(codigo + title[un:] + '.mp4')
-        if len(self.filename) > 210:
-            self.filename = self.filename[:210]
+        if len(self.filename) > 209:
+            self.filename = self.filename[:205]+'.mp4'
         codigo = soup.findAll('script', {'type': 'text/javascript'})[2].text.strip()
         un = codigo.find('eval(')
         codigo = codigo[un:codigo.find('.split(',un)]
