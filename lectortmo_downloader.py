@@ -45,12 +45,13 @@ class Image:
 
 def getpage302(url,cw):
     print_ = get_print(cw)
-    for _ in range(5):
+    for _ in range(3):
         try:
             soup = Soup(downloader.read_html(url,referer=REFER,user_agent=USERAGENT))
             if 'haciendo demasiadas peticiones' in soup.find('title').text.strip():
                 print_('Estas haciendo demasiadas peticiones espera 60 segundos')
                 time.sleep(60)
+                continue
             ur = soup.find('meta', {'property': 'og:url'}).attrs['content']
             if not '/cascade' in ur:
                 if '/view_uploads/' in ur:
@@ -69,6 +70,7 @@ def getpage302(url,cw):
                 if 'haciendo demasiadas peticiones' in soup.find('title').text.strip():
                     print_('Estas haciendo demasiadas peticiones espera 60 segundos')
                     time.sleep(60)
+                    continue
             break
         except Exception as e:
             print_('Error getpage302:',e)
@@ -116,6 +118,7 @@ def get_pages(url):
             soup = Soup(downloader.read_html(url,user_agent=USERAGENT))
             if 'haciendo demasiadas peticiones' in soup.find('title').text.strip():
                 time.sleep(60)
+                continue
             view = soup.findAll('li', class_='upload-link')
             if not view:
                 raise Exception('no view')
