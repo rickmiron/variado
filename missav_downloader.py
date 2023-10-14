@@ -62,11 +62,12 @@ class Video:
         for car in inpu:
             num = ord(car)
             if 47 < num < 58:
-                narray.append(k_array[num - 48])
+                ee = k_array[num - 48] if k_array[num - 48] else car
             elif 96 < num < 123:
-                narray.append(k_array[num - 87])
+                ee = k_array[num - 87] if k_array[num - 87] else car
             else:
-                narray.append(car)
+                ee = car
+            narray.append(ee)
         return ''.join(narray)
 
 class Downloader_missav(Downloader):
