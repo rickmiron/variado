@@ -1,15 +1,15 @@
 #coding:utf8
 #title_en: Missav
 #https://missav.com/
+#author: Rickelpapu
 '''
 Missav Downloader
 '''
 import downloader
-from utils import (Downloader, try_n, LazyUrl, get_print,
+from utils import (Downloader, try_n, LazyUrl, get_print,Soup,
                    clean_title)
 from error_printer import print_error
 from m3u8_tools import playlist2stream, M3u8_stream
-import re
 
 class Video:
     def __init__(self, url,cwz):
@@ -37,10 +37,8 @@ class Video:
         get
         '''
         print_ = get_print(self.cw)
-        headerw = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
-            }
         try:
-            soup = downloader.read_soup(url,header=headerw)
+            soup = Soup(downloader.read_html(url,user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'))
         except Exception as e:
             print_(print_error(e))
         codigo = soup.find('meta', {'property': 'og:url'}).attrs['content']
@@ -54,21 +52,22 @@ class Video:
             self.filename = self.filename[:205]+'.mp4'
         codigo = soup.findAll('script', {'type': 'text/javascript'})[2].text.strip()
         un = codigo.find('eval(')
-        codigo = codigo[un:codigo.find('.split(',un)]
+        codigo = codigo[un:codigo.find('.split(',un) - 1]
         un = 0
         for _ in range(3):
             un = codigo.find('://',un + 1)
-        inp = codigo[un-1:codigo.find(';',un)-2]
+        inpu = codigo[un-1:codigo.find(';',un)-2]
         k_array = codigo[codigo.find(',\'',un) + 2:].split('|')
-        def base(i):
-            if i < 10:
-                return chr(48 + i)
-            return chr(87 + i)
-        d = {}
-        for i in range(len(k_array)):
-            bi = base(i)
-            d[bi] = k_array[i] or bi
-        return re.sub(r'\b\w+\b', lambda x: d[x.group()], inp)
+        narray = []
+        for car in inpu:
+            num = ord(car)
+            if 47 < num < 58:
+                narray.append(k_array[num - 48])
+            elif 96 < num < 123:
+                narray.append(k_array[num - 87])
+            else:
+                narray.append(car)
+        return ''.join(narray)
 
 class Downloader_missav(Downloader):
     '''
