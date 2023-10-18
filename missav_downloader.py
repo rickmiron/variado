@@ -10,6 +10,10 @@ from utils import (Downloader, try_n, LazyUrl, get_print,Soup,
                    clean_title)
 from error_printer import print_error
 from m3u8_tools import playlist2stream, M3u8_stream
+from io import BytesIO
+from PIL import Image
+from ffmpeg import convert
+from os import remove
 
 class Video:
     def __init__(self, url,cwz):
@@ -29,18 +33,29 @@ class Video:
             raise e_
         if getattr(m, 'live', None) is not None:
             m = m.live
-        self.url = LazyUrl(url, lambda _: m, self)
+        self.thumb = BytesIO()
+        self.thumbz = BytesIO()
+        downloader.download(self.urlthumb, buffer=self.thumbz)
+        self.tojpg()
+        self.url = LazyUrl(url, lambda _: m, self, pp=self.pp)
     
+    def tojpg(self):
+        self.thumbz.seek(0)
+        if len(self.thumbz.read()) > 0:
+            imagen_webp = Image.open(self.thumbz)
+            if imagen_webp.mode != "RGB":
+                imagen_webp = imagen_webp.convert("RGB")
+            imagen_webp.save(self.thumb, "JPEG", quality=90)
+            self.thumbz.truncate(0)
+
     @try_n(2)
     def ofuscado(self, url):
-        '''
-        get
-        '''
         print_ = get_print(self.cw)
         try:
             soup = Soup(downloader.read_html(url,user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'))
         except Exception as e:
             print_(print_error(e))
+        self.urlthumb = soup.find('meta', {'property': 'og:image'}).attrs['content']
         codigo = soup.find('meta', {'property': 'og:url'}).attrs['content']
         codigo = codigo[codigo.rfind('/')+1:].upper()
         title = soup.find('h1').text.strip()
@@ -62,13 +77,25 @@ class Video:
         for car in inpu:
             num = ord(car)
             if 47 < num < 58:
-                ee = k_array[num - 48] if k_array[num - 48] else car
+                ee = k_array[num - 48] or car
             elif 96 < num < 123:
-                ee = k_array[num - 87] if k_array[num - 87] else car
+                ee = k_array[num - 87] or car
             else:
                 ee = car
             narray.append(ee)
         return ''.join(narray)
+    
+    def pp(self, filename):
+        self.thumb.seek(0)
+        bythum = self.thumb.read()
+        if len(bythum) > 0:
+            pathum = '{}.I'.format(filename)
+            with open(pathum, 'wb') as f:
+                f.write(bythum)
+            f.close
+            convert(filename, filename, '-i "{}" -map 1 -map 0 -c copy -disposition:0 attached_pic'.format(pathum), cw=self.cw)
+            remove(pathum)
+        return filename
 
 class Downloader_missav(Downloader):
     '''
@@ -88,4 +115,5 @@ class Downloader_missav(Downloader):
     def read(self):
         video = Video(self.url, self.cw)
         self.urls.append(video.url)
+        self.setIcon(video.thumb)
         self.title = video.filename
