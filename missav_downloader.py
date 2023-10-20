@@ -2,22 +2,23 @@
 #title_en: Missav
 #https://missav.com/
 #author: Rickelpapu
-'''
-Missav Downloader
-'''
+
 import downloader
 from utils import (Downloader, try_n, LazyUrl, get_print,Soup,
                    clean_title)
+from translator import tr_
 from error_printer import print_error
 from m3u8_tools import playlist2stream, M3u8_stream
 from io import BytesIO
 from PIL import Image
-from ffmpeg import convert
-from os import remove
+from ffmpeg import convert, run
+from os import remove, path
 
 class Video:
-    def __init__(self, url,cwz):
+    def __init__(self, url, cwz, dir):
         self.cw = cwz
+        self.dir = dir
+        get_print(self.cw)('Get ofuscado')
         urlv = self.ofuscado(url)
         ms = [
             lambda: playlist2stream(urlv,referer='https://missav.com', n_thread=8),
@@ -35,13 +36,30 @@ class Video:
             m = m.live
         self.thumb = BytesIO()
         self.thumbz = BytesIO()
+        self.cw.setTitle('{}...{}'.format(tr_('썸네일 다운로드'), self.filename))
         downloader.download(self.urlthumb, buffer=self.thumbz)
+        self.dirfile = '{}\\{}'.format(dir, self.filename)
         self.tojpg()
+        self.havethumbnail()
         self.url = LazyUrl(url, lambda _: m, self, pp=self.pp)
     
+    def havethumbnail(self):
+        if path.exists(self.dirfile):
+            mi = run(f'-i "{self.filename}"', self.dir, bin='ffprobe')
+            for ee in mi:
+                if isinstance(ee, str) and 'attached pic' in ee:
+                    break
+            else:
+                self.cw.setTitle('{}...{}'.format(tr_('썸네일 고정'), self.filename))
+                self.pp(self.dirfile)
+
     def tojpg(self):
         self.thumbz.seek(0)
-        if len(self.thumbz.read()) > 0:
+        bythz = self.thumbz.read()
+        if len(bythz) > 0:
+            with open(self.dirfile + '.webp', "wb") as f:
+                f.write(bythz)
+            f.close
             imagen_webp = Image.open(self.thumbz)
             if imagen_webp.mode != "RGB":
                 imagen_webp = imagen_webp.convert("RGB")
@@ -64,7 +82,7 @@ class Video:
             un = len(title)
         self.filename = clean_title(codigo + title[un:] + '.mp4')
         if len(self.filename) > 209:
-            self.filename = self.filename[:205]+'.mp4'
+            self.filename = self.filename[:205] + '.mp4'
         codigo = soup.findAll('script', {'type': 'text/javascript'})[2].text.strip()
         un = codigo.find('eval(')
         codigo = codigo[un:codigo.find('.split(',un) - 1]
@@ -93,14 +111,11 @@ class Video:
             with open(pathum, 'wb') as f:
                 f.write(bythum)
             f.close
-            convert(filename, filename, '-i "{}" -map 1 -map 0 -c copy -disposition:0 attached_pic'.format(pathum), cw=self.cw)
+            convert(filename, filename, f'-i "{pathum}" -map 1 -map 0 -c copy -disposition:0 attached_pic', cw=self.cw)
             remove(pathum)
         return filename
 
 class Downloader_missav(Downloader):
-    '''
-    Downloader
-    '''
     type = 'missav'
     single = True
     strip_header = False
@@ -113,7 +128,7 @@ class Downloader_missav(Downloader):
 
     @try_n(2)
     def read(self):
-        video = Video(self.url, self.cw)
-        self.urls.append(video.url)
+        video = Video(self.url, self.cw ,self.dir)
         self.setIcon(video.thumb)
+        self.urls.append(video.url)
         self.title = video.filename
