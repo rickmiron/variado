@@ -12,7 +12,7 @@ from m3u8_tools import playlist2stream, M3u8_stream
 from io import BytesIO
 from PIL import Image
 from ffmpeg import convert, run
-from os import remove, path
+from os import remove, makedirs, path
 
 class Video:
     def __init__(self, url, cwz, dir):
@@ -128,6 +128,8 @@ class Downloader_missav(Downloader):
 
     @try_n(2)
     def read(self):
+        if not path.exists(self.dir):
+            makedirs(self.dir)
         video = Video(self.url, self.cw ,self.dir)
         self.setIcon(video.thumb)
         self.urls.append(video.url)
