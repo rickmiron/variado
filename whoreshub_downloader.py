@@ -4,6 +4,7 @@
 
 import downloader
 from io import BytesIO
+from os import path, makedirs
 from utils import (Downloader, Soup, try_n, LazyUrl, get_print,
                    clean_title)
 from error_printer import print_error
@@ -88,6 +89,8 @@ class Downloader_whoreshub(Downloader):
     def read(self):
         cw = self.cw
         print_ = get_print(cw)
+        if not path.exists(self.dir):
+            makedirs(self.dir)
         if '/albums/' in self.url:
             self.single = False
             info = get_album(self.url)
