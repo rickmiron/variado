@@ -22,7 +22,6 @@ class Downloader_kemonosu(Downloader):
             self.cw.setTitle(titu[:titu.find('/')])
         else:
             self.title, self.urls, self.filenames = read_user(self.url, self.cw)
-        #self.enableSegment(chunk=2**20,n_threads=2)
 
 def read_user(url, cw):
     soup = Soup(downloader.read_html(url))
@@ -34,15 +33,15 @@ def read_user(url, cw):
     elementos = soup.find('div', class_='card-list__items').findAll('a')
     for a in elementos:
         galerias.append(a.attrs['href'])
-    Next = soup.find('div', class_='next')
+    Next = soup.find('a', class_='next')
     cw.setTitle('{}  {} - {}'.format(tr_('읽는 중...'), titu, nga))
     while Next:
         href = Next.attrs['href']
-        soup = Soup(downloader.read_html(href))
+        soup = Soup(downloader.read_html('https://kemono.su'+href))
         elementos = soup.find('div', class_='card-list__items').findAll('a')
         for a in elementos:
             galerias.append(a.attrs['href'])
-        Next = soup.find('div', class_='next')
+        Next = soup.find('a', class_='next')
     files = []
     namefiles = {}
     for gale in galerias:
@@ -67,17 +66,14 @@ def read_post(url, cw):
     # Downloads
     for item in soup.findAll('li', class_='post__attachment'):
         href = urljoin(url, item.find('a')['href'])
-        ext = get_ext(href) or downloader.get_ext(href)
+        ext = get_ext(href) or '.item'
         filenames[href] = '{}/{:04}{}'.format(info, len(imgs), ext)
         imgs.append(href)
     # Files
     files = soup.find('div', class_='post__files')
     if files:
         for item in files.findChildren(recursive=False):
-            if 'href' in item.attrs:
-                a = item
-            else:
-                a = item.find('a')
+            a = item if 'href' in item.attrs else item.find('a')
             href = urljoin(url, a['href'])
             # Imgur
             if 'imgur.com/' in href:
@@ -87,11 +83,11 @@ def read_post(url, cw):
                     for img in imgur_downloader.get_imgs(href):
                         ext = get_ext(img) or downloader.get_ext(img)
                         filenames[img] = '{}/{:04}{}'.format(info, len(imgs), ext)
-                        imgs.append(href)
+                        imgs.append(img)
                 except Exception as e:
                     print_(print_error(e))
                 continue
-            ext = get_ext(href) or downloader.get_ext(href)
+            ext = get_ext(href) or '.file'
             filenames[href] = '{}/{:04}{}'.format(info, len(imgs), ext)
             imgs.append(href)
     # Content
