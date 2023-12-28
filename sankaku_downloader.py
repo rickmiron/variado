@@ -110,7 +110,7 @@ class Image:
                 break
             except Exception as e:
                 e_msg = print_error(e)
-                if '429 Too many requests' in html:
+                if '429 Too many requests' in html or 'equest limit exceeded' in html:
                     t_sleep = 120 * min(try_ + 1, 2)
                     e = f'429 Too many requests... wait {t_sleep} secs'
                 elif 'post-content-notification' in html: # sankaku plus
@@ -175,7 +175,7 @@ def get_imgs(url, tipe, cw, session=None):
         except Exception as e: #3366
             print_(print_error(e))
             break
-        if '429 Too many requests'.lower() in html.lower():
+        if '429 Too many requests' in html or 'equest limit exceeded' in html:
             print_('429 Too many requests... wait 120 secs')
             sleep(120, cw)
             continue
