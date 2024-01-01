@@ -5,7 +5,7 @@ import constants
 class InDig(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(" ")
+        self.setWindowTitle("Insert Link Artist")
 
         self.infd = QLineEdit(self)
         self.okbu = QPushButton("OK", self)
