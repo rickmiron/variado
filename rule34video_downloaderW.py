@@ -27,7 +27,8 @@ class Video:
 
     def getx(self, urlz):
         sleep(10)
-        urlse = pythonexter(urlz)
+        urlse, pinn = pythonexter(urlz)
+        get_print(self.cw)(pinn)
         get_print(self.cw)('getx fin '+urlse)
         return urlse
 
@@ -73,7 +74,7 @@ def pythonexter(url):
     output, _ = proceso.communicate()
     lines = output.decode("utf-8", errors="ignore").splitlines()
     code = lines[4][9:12]
-    return lines[8][10:] if code == '302' else url if code == '200' else code
+    return lines[8][10:] if code == '302' else url if code == '200' else code , lines
 
 def texto(f):
     return f.text.strip()
