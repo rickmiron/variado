@@ -160,9 +160,10 @@ def json(url,arraylocal,arrayid,cuki,sincro):
     if response.status_code==200:
         sincro[1]='Content-Length' in response.headers
         for jo in response.json():
-            idx = jo['id']
+            idz = jo['id']
+            idx = str(idz)
             url_img = arraylocal[idx] if idx in arraylocal else 'https:'+(jo['file_url'] or jo['sample_url'])
-            arrayid.append((idx,url_img))
+            arrayid.append((idz,url_img))
         sincro[0]=len(arrayid)
     else:
         sincro[1]=True
