@@ -6,7 +6,7 @@
 #http://white.sankakucomplex.com/
 import downloader
 import os
-from utils import Downloader, LazyUrl, urljoin, get_print, Soup, Session, clean_title, check_alive
+from utils import Downloader, LazyUrl, urljoin, get_print, Soup, clean_title, check_alive, Session
 from translator import tr_
 from timee import sleep
 from error_printer import print_error
@@ -64,46 +64,29 @@ def get_imgs_www(url, session):
     info['imgs'] = imgs
     return info
 
-@LazyUrl.register
-class LazyUrl_sankaku(LazyUrl):
-    type = 'sankaku'
-    def dump(self):
-        return {
-            'id': self.image.id,
-            'url': self._url,
-            'referer': self.image.referer,
-            'local': self.image.local,
-            'cw': self.CW,
-            'session': self.SESSION,
-            }
-    @classmethod
-    def load(cls, data):
-        img = Image(data['id'], data['url'], data['referer'], data['local'], data['cw'], data['session'])
-        return img.url
-
 class Image:
-    filename = None
-    def __init__(self, id, url, referer, local=False, cw=None,session=None):
-        self.id = id
-        self.referer = referer
+    def __init__(self, idx, url, referer, local=False, cw=None,session=None):
+        self.id = idx
+        self.refererx = referer
         self.cw = cw
-        self.local = local
         self.session = session
+        self.urx = url
         if local:
             self.url = url
             self.filename = os.path.basename(url)
         else:
-            self.url = LazyUrl_sankaku(url, self.get, self)
+            self.url = LazyUrl(None, self.get, self)
 
-    def get(self, url):
+    def get(self, _):
         cw = self.cw
         print_ = get_print(cw)
+        url = self.urx
 
         for try_ in range(2):
             wait(cw)
             html = ''
             try:
-                html = downloader.read_html(url, referer=self.referer, session=self.session)
+                html = downloader.read_html(url, referer=self.refererx, session=self.session)
                 soup = Soup(html)
                 highres = soup.find(id='highres')
                 url = 'https:' + (highres['href'] if highres else soup.find('meta', {'property': 'og:image'}).attrs['content'])
@@ -113,7 +96,7 @@ class Image:
                 if '429 Too many requests' in html or 'equest limit exceeded' in html:
                     t_sleep = 120 * min(try_ + 1, 2)
                     e = f'429 Too many requests... wait {t_sleep} secs'
-                elif 'post-content-notification' in html: # sankaku plus
+                elif 'post-content-notification' in html:
                     print_(f'Sankaku plus: {self.id}')
                     return ''
                 else:
@@ -186,6 +169,8 @@ def get_imgs(url, tipe, cw, session=None):
                 raise errors.LoginRequired(err.text.strip())
             break
         for span in soup.find(class_='content').findAll('div', recursive=False)[1].findAll('span', recursive=False):
+            if span.has_attr('style'):
+                continue
             idx = span.attrs['data-id']
             if idx is None: # sankaku plus
                 continue
