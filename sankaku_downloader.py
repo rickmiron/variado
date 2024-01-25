@@ -6,7 +6,7 @@
 #http://white.sankakucomplex.com/
 import downloader
 import os
-from utils import Downloader, LazyUrl, urljoin, get_print, Soup, clean_title, check_alive, Session
+from utils import Downloader, LazyUrl, urljoin, get_print, Soup, clean_title, check_alive, Session, get_max_range
 from translator import tr_
 from timee import sleep
 from error_printer import print_error
@@ -150,7 +150,8 @@ def get_imgs(url, tipe, cw, session=None):
         local_ids[id] = os.path.join(dir, name)
     cw.setTitle('{}  {}'.format(tr_('읽는 중...'), title))
     url_imgs = set()
-    while True:
+    max_pid = get_max_range(cw)
+    while len(imgs) < max_pid:
         wait(cw)
         print_(url)
         try:
