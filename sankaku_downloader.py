@@ -119,15 +119,14 @@ def wait(cw):
 def get_imgs(url, tipe, cw, session=None):
     print_ = get_print(cw)
     info = {}
-    if '/posts/' in url:
-        info['single'] = True
+    info['single'] = '/posts/' in url
+    if info['single']:
         html = downloader.read_html(url, session=session)
         soup = Soup(html)
         idx = soup.find(id ='post_id').attrs['value']
         info['imgs'] = [Image(idx, url, url, cw=cw).url]
         info['title'] = f'[{tipe}]{idx}'
         return info
-    info['single'] = False
     imgs = []
     url_old = f'https://{tipe}.sankakucomplex.com'
     title = url.split('?tags=')[1].split('&')[0].replace('%20',' ').replace('+',' ')
