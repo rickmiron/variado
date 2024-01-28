@@ -5,7 +5,7 @@
 #https://sankaku.app/
 #http://white.sankakucomplex.com/
 import os
-from utils import Downloader, LazyUrl, Soup, clean_title, clean_url, Session
+from utils import Downloader, LazyUrl, Soup, clean_title, clean_url, Session, get_print
 from translator import tr_
 from timee import sleep
 from urllib.parse import unquote
@@ -79,13 +79,36 @@ def get_imgs(url, tipe, cw):
     url = url[url.find('?')+1:]
     arxids = []
     nex = ''
+    tags = []
+    pri = ''
+    prix = ''
     for ii in url.split('&'):
         if 'next=' in ii:
             nex = '&'+ii
         elif not 'page=' in ii:
-            arxids.append(ii)
+            if 'tags=' in ii:
+                ii = ii[ii.find('tags=')+5:].replace(' ','%20').replace('+','%20')
+                for jj in ii.split('%20'):
+                    if 'id_range%3A' in jj or 'id_range:' in jj:
+                        prix = '%20'+jj
+                        iia = unquote(jj)
+                        if '>' in iia:
+                            if '=' in iia:
+                                pri = iia[2:]
+                            else:
+                                pri = iia[1:]
+                                pri = str(int(pri)+1)
+                        elif '.' == iia[-1]:
+                            pri = iia[:-2]
+                        elif not '.' == iia[0] and '..' in iia:
+                            pri = iia[:iia.find('..')]
+                    else:
+                        tags.append(jj)
+            else:
+                arxids.append(ii)
+    arxids.append('%20'.join(tags))
     url ='&'.join(arxids)
-    title = url.replace('tags=','').replace('%20',' ').replace('+',' ')
+    title = url.replace('%20',' ')
     while '  ' in title:
         title = title.replace('  ', ' ')
     title = unquote(title)
@@ -106,7 +129,7 @@ def get_imgs(url, tipe, cw):
     cw.setTitle('{}  {}'.format(tr_('읽는 중...'), title))
     arxids = []
     sincro = [0,False]
-    response = requests.get(f'https://{tipe}.sankakucomplex.com/posts.json?'+url+nex, allow_redirects=False, cookies=cuki)
+    response = requests.get(f'https://{tipe}.sankakucomplex.com/posts.json?tags='+url+prix, allow_redirects=False, cookies=cuki)
     if response.status_code==200:
         if 'Content-Length' in response.headers:
             raise Exception ('Empty urls')
@@ -118,7 +141,7 @@ def get_imgs(url, tipe, cw):
         sincro[0]=len(arxids)
     else:
         raise Exception ('Charge cookies')
-    info['selfurls'] = [Image(iii, f'https://{tipe}.sankakucomplex.com/posts.json?'+url, local_ids, arxids,cuki,sincro).url for iii in range(4000)]
+    info['selfurls'] = [Image(iii, f'https://{tipe}.sankakucomplex.com/posts.json?tags='+url+f'%20id_range%3A{pri}..', local_ids, arxids,cuki,sincro).url for iii in range(4000)]
     info['title'] = title
     return info
 
@@ -149,7 +172,7 @@ class Image:
         arix = self.arid
         idz = arix[pox][0]
         if idz == arix[-1][0]:
-            urx = f'{self.referxr}&next={idz-1}'
+            urx = f'{self.referxr}{idz-1}'
             json(urx,self.arlocal,arix,self.coki,self.sincro)
         ext = os.path.splitext(arix[pox][1])[1].split('?')[0]
         self.filename = f'{idz}{ext}'
