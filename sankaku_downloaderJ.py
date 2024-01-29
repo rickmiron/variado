@@ -5,7 +5,7 @@
 #https://sankaku.app/
 #http://white.sankakucomplex.com/
 import os
-from utils import Downloader, LazyUrl, Soup, clean_title, clean_url, Session, get_print
+from utils import Downloader, LazyUrl, Soup, clean_title, clean_url, Session
 from translator import tr_
 from timee import sleep
 from urllib.parse import unquote
@@ -91,7 +91,7 @@ def get_imgs(url, tipe, cw):
                 for jj in ii.split('%20'):
                     if 'id_range%3A' in jj or 'id_range:' in jj:
                         prix = '%20'+jj
-                        iia = unquote(jj)
+                        iia = unquote(jj)[9:]
                         if '>' in iia:
                             if '=' in iia:
                                 pri = iia[2:]
@@ -102,8 +102,7 @@ def get_imgs(url, tipe, cw):
                             pri = iia[:-2]
                         elif not '.' == iia[0] and '..' in iia:
                             pri = iia[:iia.find('..')]
-                    else:
-                        tags.append(jj)
+                    tags.append(jj)
             else:
                 arxids.append(ii)
     arxids.append('%20'.join(tags))
