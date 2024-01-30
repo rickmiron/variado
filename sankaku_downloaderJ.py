@@ -65,16 +65,16 @@ def get_imgs(url, tipe, cw):
     info['single'] = '/posts/' in url
     cuki = getcuki(tipe)
     if info['single']:
-        response = requests.get(f'https://{tipe}.sankakucomplex.com/posts.json?'+url+nex, allow_redirects=False, cookies=cuki)
+        response = requests.get(url, allow_redirects=False, cookies=cuki)
         if response.status_code==200:
-            jo = response.json()[0]
-            idx=jo['id']
-            arxids.append(idx, 'https:'+jo['file_url'])
-            #sincro[0]=len(arxids)
+            soup = Soup(response.text)
+            idx = soup.find(id ='post_id').attrs['value']
+            highres = soup.find(id='highres')
+            url = 'https:' + (highres['href'] if highres else soup.find('meta', {'property': 'og:image'}).attrs['content'])
+            info['selfurls'] = [Imaon(idx, url).url]
+            info['title'] = f'[{tipe}]{idx}'
         else:
             raise Exception ('charge cookies')
-        info['imgs'] = [Image(1, f'https://{tipe}.sankakucomplex.com/posts.json?'+url, local_ids, arxids,cuki,sincro).url]
-        info['title'] = f'[{tipe}]{idx}'
         return info
     url = url[url.find('?')+1:]
     arxids = []
@@ -189,3 +189,13 @@ def json(url,arraylocal,arrayid,cuki,sincro):
         sincro[0]=len(arrayid)
     else:
         sincro[1]=True
+
+class Imaon:
+    def __init__(self, idx, url):
+        ext = os.path.splitext(url)[1].split('?')[0]
+        self.filename = f'{idx}{ext}'
+        self.urx = url
+        self.url = LazyUrl(None, self.get, self)
+
+    def get(self, _):
+        return self.urx
