@@ -1,14 +1,8 @@
 #coding: utf-8
 #title_en: Tmohentai
-#https://tmohentai.com/
+#comment: https://tmohentai.com/
 import downloader
-import ree as re
-import os
-from utils import Downloader, LazyUrl, get_print, Soup, lazy, Session, clean_title, check_alive
-from timee import sleep
-from error_printer import print_error
-from ratelimit import limits, sleep_and_retry
-
+from utils import Downloader, Soup, lazy, Session, clean_title
 
 @Downloader.register
 class Downloader_tmohentai(Downloader):
@@ -18,6 +12,8 @@ class Downloader_tmohentai(Downloader):
     display_name = 'Tmohentai'
     MAX_CORE = 4
     ACCEPT_COOKIES = [r'(.*\.)?(tmohentai\.com)']
+    referer = 'https://tmohentai.com/'
+    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
 
     def init(self):
         self.type_id = self.url[self.url.rfind('/') + 1:]
@@ -51,105 +47,14 @@ class Downloader_tmohentai(Downloader):
 
     def read(self):
         #self.title = self.name
-        imgs = get_imgs_www(self.soup)
-        for img in imgs:
-            if isinstance(img, str):
-                self.urls.append(img)
-            else:
-                self.urls.append(img.url)
+        self.urls, self.filenames = get_imgs_www(self.soup)
         self.title = self.name
 
 def get_imgs_www(soup):
     imgs = []
-    view = soup.find('div', class_='container')
-    for img in view.findAll('img'):
-        img = img.attrs.get('data-original')
-        if not img:
-            continue
-        img = 'https://tmohentai.com' + img
-        imgs.append(img)
-    return imgs
-
-@LazyUrl.register
-class LazyUrl_tmohentai(LazyUrl):
-    type = 'tmohentai'
-    def dump(self):
-        return {
-            'type': self.image.type,
-            'id': self.image.id,
-            'url': self._url,
-            'referer': self.image.referer,
-            'cw': self.CW,
-            'd': self.DOWNLOADER,
-            'local': self.image.local,
-            'session': self.SESSION,
-            }
-    @classmethod
-    def load(cls, data):
-        img = Image(data['type'], data['id'], data['url'], data['referer'], data['local'], data['cw'], data['d'], data['session'])
-        return img.url
-
-class Image:
-    filename = None
-    def __init__(self, type, id, url, referer, local=False, cw=None, d=None, session=None):
-        self.type = type
-        self.id = id
-        self.referer = referer
-        self.cw = cw
-        self.d = d
-        self.local = local
-        self.session = session
-        if local:
-            self.url = url
-            self.filename = os.path.basename(url)
-        else:
-            self.url = LazyUrl_tmohentai(url, self.get, self)
-
-    def get(self, url):
-        cw = self.cw
-        #d = self.d
-        print_ = get_print(cw)
-
-        for try_ in range(4):
-            wait(cw)
-            html = ''
-            try:
-                html = downloader.read_html(url, referer=self.referer, session=self.session)
-                soup = Soup(html)
-                highres = soup.find(id='post-info-size').find('a').attrs['href']
-                url = highres
-                break
-            except Exception as e:
-                e_msg = print_error(e)
-                if '429 Too many requests'.lower() in html.lower():
-                    t_sleep = 120 * min(try_ + 1, 2)
-                    e = '429 Too many requests... wait {} secs'.format(t_sleep)
-                else:
-                    t_sleep = 5
-                s = 'TMO hentai failed to read image (id:{}): {}'.format(self.id, e)
-                print_(s)
-                sleep(t_sleep, cw)
-        else:
-            raise Exception('can not find image (id:{})\n{}'.format(self.id, e_msg))
-        soup = Soup('<p>{}</p>'.format(url))
-        url = soup.string
-        ext = os.path.splitext(url)[1].split('?')[0]
-        self.filename = '{}{}'.format(self.id, ext)
-        return url
-
-def setPage(url, page):
-    # Always use HTTPS
-    url = url.replace('http://', 'https://')
-
-    # Change the page
-    if 'page=' in url:
-        url = re.sub(r'page=[0-9]*', 'page={}'.format(page), url)
-    else:
-        url += '&page={}'.format(page)
-
-    return url
-
-@sleep_and_retry
-@limits(1, 6)
-def wait(cw):
-    check_alive(cw)
+    filenames = {}
+    for img in soup.find('div', class_='container').findAll('img'):
+        data = img['data-original']
+        imgs.append(data)
+        filenames[data] = data[data.rfind('/')+1:]
+    return imgs,filenames
