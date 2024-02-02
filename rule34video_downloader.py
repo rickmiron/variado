@@ -57,7 +57,7 @@ class Video:
                 continue
             elif label == 'Uploaded By:' :
                 artis = inf.find('a', class_='name').text.strip()
-        m1 = url.find('/v') + 8
+        m1 = url.find('/',url.find('.') + 6) + 1
         m2 = url.find('/', m1)
         artis = artis + ')' + title +'('+ url[m1:m2] + '.mp4'
         #files = soup.find('div', class_='video_tools').find('div', class_='wrap').findAll('a')
