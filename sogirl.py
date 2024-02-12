@@ -44,27 +44,35 @@ class Downloader_sogirl(Downloader):
             if not os.path.exists(diir):
                 os.makedirs(diir)
             self.urls = getm3u8(infof['iframe'],sesion, diir,self.cw,domi)
-    
+
     def post_processing(self):
         if not self.single:
-            fin = len(self.urls)
             ini = 0
+            fin = len(self.urls)
+            finx = 2044
+            ext ='.ts'
             name0 = ''
+            name1 = 'x0'
             self.cw.setTitle('Joining parts...'+self.title)
-            if fin>6719:
-                ini = 6719
-                partes = [str(ele) for ele in range(ini)]
-                run(f'-i concat:{"|".join(partes)} -c copy x0.ts', self.dir)
-                name0 = 'x0.ts|'
-            partes = [str(ele) for ele in range(ini,fin)]
-            run(f'-i concat:{name0}{"|".join(partes)} -c copy "{self.title}.mp4"', self.dir)
+            while True:
+                if not fin>finx:
+                    finx = fin
+                    name1 = self.title
+                    ext = '.mp4'
+                partes = [str(ele) for ele in range(ini,finx)]
+                run(f'-i concat:{name0}{"|".join(partes)} -c copy "{name1}{ext}"', self.dir)
+                if ext == '.mp4':
+                    break
+                name0 = name1+ext+'|'
+                name1 = 'x1' if name1=='x0' else 'x0'
+                ini = finx
+                finx += 2044
             self.cw.setTitle('Cleaning...'+self.title)
             os.rename(self.dir+'/'+self.title+'.mp4', self.dir+'.mp4')
             shutil.rmtree(self.dir)
             self.cw.setNameAt(0, self.dir+'.mp4')
-            self.single= True
+            self.single = True
             self.cw.setTitle(self.title)
-            
 
 class Video:
     def __init__(self, url, sesion, cw, pos ,cifralis,pinx,arstr):
