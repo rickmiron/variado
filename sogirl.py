@@ -3,7 +3,7 @@
 #comment: https://krXX.sogirl.so/
 
 import downloader
-from utils import Downloader, get_print,LazyUrl,Soup,clean_title
+from utils import Downloader,LazyUrl,Soup,clean_title
 from io import BytesIO
 import clf2
 from hashlib import md5
@@ -84,10 +84,10 @@ class Video:
         self.cifralis =cifralis
         self.pinx=pinx
         self.arstr=arstr
-    
+
     def get(self,urlx):
         ind = self.pos//3
-        while len(self.cifralis) <= ind:
+        while ind not in self.cifralis:
             if self.pos%3==0:
                 if self.pos%12==0:
                     ackey = ind*12
@@ -95,9 +95,7 @@ class Video:
                     self.pinx[1]=f'{self.arstr[2]}/ping?hash={mdd5}&time={ackey}.000001&paused=false&resolution=720'
                 self.session.get(self.pinx[1],headers={'Referer': 'https://iframe.mediadelivery.net/'})
                 clave = self.session.get(self.arstr[3]+str(ind),headers={'referer': 'https://iframe.mediadelivery.net/'})
-                while len(self.cifralis) != ind:
-                    sleep(0.01)
-                self.cifralis.append(Cipher(algorithms.AES(clave.content), modes.CBC(self.arstr[4]), backend=default_backend()))
+                self.cifralis[ind]=(Cipher(algorithms.AES(clave.content), modes.CBC(self.arstr[4]), backend=default_backend()))
                 break
             else:
                 sleep(0.01)
@@ -122,7 +120,6 @@ def getinf(urlx,domi):
 
 def getm3u8(iframe,sesionx,ruta,cw,domi):
     arstri = []
-    #print_ = get_print(cw)
     sop = sesionx.get(iframe,headers={'Referer': f'https://{domi}.sogirl.so/'}).text
     un = sop.find('loadUrl("')+9
     urb = sop[un:sop.find('"',un)]
@@ -145,7 +142,7 @@ def getm3u8(iframe,sesionx,ruta,cw,domi):
     inf = False
     archunk = []
     pos = 0
-    cifralis = []
+    cifralis = {}
     pinx=[0,pingg]
     tup = None
     for linea in resm3u8.split():
