@@ -22,6 +22,7 @@ class Downloader_kemonosu(Downloader):
             self.cw.setTitle(titu[:titu.find('/')])
         else:
             self.title, self.urls, self.filenames = read_user(self.url, self.cw)
+        #self.enableSegment(chunk=2**20,n_threads=2)
 
 def read_user(url, cw):
     soup = Soup(downloader.read_html(url))
@@ -98,9 +99,9 @@ def read_post(url, cw):
             ext = get_ext(src) or downloader.get_ext(src)
             filenames[src] = '{}/{:04}{}'.format(info, len(imgs), ext)
             imgs.append(src)
-        for a in content.findAll('a'):
-            href = a['href']
-            ext = '.cont'#get_ext(href) or downloader.get_ext(href)
-            filenames[href] = '{}/{:04}{}'.format(info, len(imgs), ext)
-            imgs.append(href)
+        #for a in content.findAll('a'):
+        #    href = a['href']
+        #    ext = '.cont'#get_ext(href) or downloader.get_ext(href)
+        #    filenames[href] = '{}/{:04}{}'.format(info, len(imgs), ext)
+        #    imgs.append(href)
     return clean_title(usuar +'('+ usid), imgs, filenames
