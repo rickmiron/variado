@@ -89,8 +89,7 @@ class Video:
             narray.append((k_array[num - 48] if 58 > num > 47 else k_array[num - 87] if 96 < num < 123 else car) or car)
         url = ''.join(narray)
         codigo = downloader.read_html(url,user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
-        #un = codigo.find('\n',codigo.rfind('INF:'))+1
-        un = codigo.find('\n',codigo.find('INF:',codigo.find('INF:')+1))+1
+        un = codigo.find('\n',codigo.rfind('INF:'))+1
         return url.replace('playlist.m3u8',codigo[un:codigo.find('\n',un)])
     
     def pp(self, filename):
