@@ -159,7 +159,7 @@ class Image:
         self.coki=coki
         self.sincro = sincrx
         #self.url = LazyUrl(f'https://chan.sankakucomplex.com/es/posts/{pos}', self.get, self)
-        self.url = LazyUrl(None, self.get, self)
+        self.url = LazyUrl('', self.get, self)
 
     def get(self, _):
         pox = self.pos
@@ -195,7 +195,7 @@ class Imaon:
         ext = os.path.splitext(url)[1].split('?')[0]
         self.filename = f'{idx}{ext}'
         self.urx = url
-        self.url = LazyUrl(None, self.get, self)
+        self.url = LazyUrl('', self.get, self)
 
     def get(self, _):
         return self.urx
