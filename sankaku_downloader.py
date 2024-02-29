@@ -75,7 +75,7 @@ class Image:
             self.url = url
             self.filename = os.path.basename(url)
         else:
-            self.url = LazyUrl(None, self.get, self)
+            self.url = LazyUrl('', self.get, self)
 
     def get(self, _):
         cw = self.cw
