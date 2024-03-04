@@ -18,6 +18,7 @@ class Downloader_allthefallen(Downloader):
     ACCEPT_COOKIES = [r'(.*\.)?(allthefallen\.moe)']
 
     def read(self):
+        self.print_('v1.00')
         self.urls, self.single = get_imgs(self.url, self.cw)
 
 def get_imgs(url, cw):
@@ -33,9 +34,8 @@ def get_imgs(url, cw):
             jo = response.json()
             idx = str(jo['id'])
             arrurls.append(Image(idx, jo['file_url']).url)
-            cw.downloader.title = f'[moe]{idx}'
+            cw.downloader.title = '[moe]'+idx
         return arrurls,single
-    
     un=url.find('tags=')+5
     dos=url.find('&',un)
     if dos==-1:
@@ -48,19 +48,16 @@ def get_imgs(url, cw):
     if not title:
         title = 'N/A'
     title = clean_title(f'[moe]{title}')
-
     local_ids = {}
     cw.downloader.title = title
     dirx = cw.downloader.dir
     try:
         names = os.listdir(dirx)
     except Exception as e:
-        print(e)
         names = []
     for name in names:
         idx = os.path.splitext(name)[0]
         local_ids[idx] = os.path.join(dirx, name)
-
     pos = 1
     while pos<31:
         try:
@@ -74,7 +71,6 @@ def get_imgs(url, cw):
         except requests.exceptions.RequestException as e:
             print_("Error:", e)
             raise
-        #response = requests.get(f'https://booru.allthefallen.moe/posts.json?page={pos}&limit=200&tags={url}+-status%3Abanned')
         if response.status_code!=200 or 'Content-Length' in response.headers:
             break
         pos+=1
@@ -90,9 +86,8 @@ class Image:
     def __init__(self, idx, urx):
         self.idx = idx
         self.urx = urx
-        self.url = LazyUrl(f'https://booru.allthefallen.moe/posts/{idx}', self.get, self)
+        self.url = LazyUrl('https://booru.allthefallen.moe/posts/'+idx, self.get, self)
 
     def get(self, _):
-        ext = os.path.splitext(self.urx)[1]
-        self.filename = f'{self.idx}{ext}'
+        self.filename = self.idx+os.path.splitext(self.urx)[1]
         return self.urx
