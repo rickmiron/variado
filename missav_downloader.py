@@ -4,8 +4,7 @@
 #author: Rickelpapu
 
 import downloader
-from utils import (Downloader, try_n, LazyUrl, get_print,Soup,
-                   clean_title)
+from utils import Downloader, try_n, LazyUrl, get_print,Soup,clean_title
 from translator import tr_
 from error_printer import print_error
 from m3u8_tools import M3u8_stream
@@ -21,13 +20,16 @@ class Video:
         get_print(self.cw)('Get ofuscado')
         urlv = self.ofuscado(url)
         get_print(self.cw)(urlv)
-        m = lambda: M3u8_stream(urlv,referer='https://missav.com', n_thread=4)
-        try:
-            m = m()
-        except Exception as e:
-            raise e
-        if getattr(m, 'live', None) is not None:
-            m = m.live
+        if urlv[urlv.rfind('.'):] == '.m3u8':
+            m = lambda: M3u8_stream(urlv,referer='https://missav.com', n_thread=4)
+            try:
+                m = m()
+            except Exception as e:
+                raise e
+            if getattr(m, 'live', None) is not None:
+                m = m.live
+        else:
+            m = urlv.replace('.mpd','.mp4')
         self.thumb = BytesIO()
         self.thumbz = BytesIO()
         self.cw.setTitle('{}...{}'.format(tr_('썸네일 다운로드'), self.filename))
@@ -36,7 +38,7 @@ class Video:
         self.dirfile = '{}\\{}'.format(dir, self.filename)
         self.tojpg()
         self.havethumbnail()
-        self.url = LazyUrl(url, lambda _: m, self, pp=self.pp)
+        self.url = LazyUrl('https://missav.com/', lambda _: m, self, pp=self.pp)
     
     def havethumbnail(self):
         if path.exists(self.dirfile):
@@ -69,16 +71,19 @@ class Video:
         except Exception as e:
             print_(print_error(e))
         self.urlthumb = soup.find('meta', {'property': 'og:image'}).attrs['content']
-        codigo = soup.find('meta', {'property': 'og:url'}).attrs['content']
-        codigo = codigo[codigo.rfind('/')+1:].upper()
         title = soup.find('h1').text.strip()
-        un = title.find(' ')
-        if un == -1:
-            un = len(title)
-        self.filename = clean_title(codigo + title[un:])+'.mp4'
+        vid = '/video/' not in url
+        if vid:
+            codigo = soup.find('meta', {'property': 'og:url'}).attrs['content']
+            codigo = codigo[codigo.rfind('/')+1:].upper()
+            un = title.find(' ')
+            if un == -1:
+                un = len(title)
+            title = codigo + title[un:]
+        self.filename = clean_title(title)+'.mp4'
         #if len(self.filename) > 209:
         #    self.filename = self.filename[:205] + '.mp4'
-        codigo = soup.findAll('script', {'type': 'text/javascript'})[2].text.strip()
+        codigo = soup.findAll('script', {'type': 'text/javascript'})[-2].text.strip()
         un = codigo.find('eval(')
         codigo = codigo[un:codigo.find('.split(',un) - 1]
         un = codigo.find('://')
@@ -88,6 +93,8 @@ class Video:
             num = ord(car)
             narray.append((k_array[num - 48] if 58 > num > 47 else k_array[num - 87] if 96 < num < 123 else car) or car)
         url = ''.join(narray)
+        if not vid:
+            return url
         codigo = downloader.read_html(url,user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
         un = codigo.find('\n',codigo.rfind('INF:'))+1
         return url.replace('playlist.m3u8',codigo[un:codigo.find('\n',un)])
