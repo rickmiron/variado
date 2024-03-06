@@ -59,13 +59,26 @@ class Video:
         self.filex=file
 
 def pythonexter(url):
+    comans = [
+        "python",
+        "import requests",
+        f"u = '{url}'",
+        "r = requests.head(u,headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36'})",
+        "if r.status_code == 302:",
+        "   print(r.headers['Location'])",
+        "elif r.status_code < 300:",
+        "   print(u)",
+        "else:",
+        "   print(r.status_code)",
+        ""
+    ]
     proceso = subprocess.Popen(["cmd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    proceso.stdin.write((f'curl -I -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36" "{url}"\n').encode("utf-8"))
+    for line in comans:
+        proceso.stdin.write((line + "\n").encode("utf-8"))
     proceso.stdin.close()
     output, _ = proceso.communicate()
-    lines = output.decode("utf-8", errors="ignore").splitlines()
-    code = lines[4][9:12]
-    return lines[8][10:] if code == '302' else url if code == '200' else code
+    output = output.decode("utf-8", errors="ignore")
+    return output.splitlines()[-3] , output
 
 def texto(f):
     return f.text.strip()
