@@ -1,44 +1,33 @@
 #coding:utf8
 #title_en:Rule34Video
 #comment:https://rule34video.com/
-'''
-Rule34Video Downloader
-'''
+
 import downloader
-from io import BytesIO
-from utils import (Downloader, Soup, try_n, LazyUrl, get_print,
-                    filter_range,
-                   clean_title, check_alive)
+from utils import Downloader, Soup, try_n, LazyUrl, get_print, clean_title, check_alive, get_resolution
 from error_printer import print_error
 import subprocess
 from timee import sleep
-
+import os
 USERAGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
 
 class Video:
-    '''
-    Video
-    '''
     def __init__(self, url, cwz):
         self.cw = cwz
         self.referer = 'https://rule34video.com/'
-        self.filex = self.get(url)
-        self.url = LazyUrl(self.filex, self.getx, self)
+        self.filex = ''
+        self.url = LazyUrl(url, self.getx, self)
 
     def getx(self, urlz):
+        if not self.filex:
+            self.get(urlz)
         sleep(10)
-        urlse, pinn = pythonexter(urlz)
-        get_print(self.cw)(pinn)
+        urlse = pythonexter(self.filex)
         get_print(self.cw)('getx fin '+urlse)
         return urlse
 
     @try_n(2)
     def get(self, url):
-        '''
-        get
-        '''
-        cw = self.cw
-        print_ = get_print(cw)
+        print_ = get_print(self.cw)
         try:
             soup = Soup(downloader.read_html(url,user_agent=USERAGENT))
         except Exception as e:
@@ -58,14 +47,16 @@ class Video:
                 artis = inf.find('a', class_='name').text.strip()
         m1 = url.find('/',url.find('.') + 6) + 1
         m2 = url.find('/', m1)
-        artis = artis + ')' + title +'('+ url[m1:m2] + '.mp4'
-        file = soup.find('div', class_='video_tools').find('div', class_='wrap').find('a').attrs['href']
+        self.filename = artis + ')' + clean_title(title) +'('+ url[m1:m2] + '.mp4'
+        reso = get_resolution()
+        files = soup.find('div', class_='video_tools').find('div', class_='wrap').findAll('a')
+        for iii in files:
+            if reso < int(iii.text.replace('MP4','').replace('p','')):
+                continue
+            file = iii.attrs['href']
+            break
         print_('getfile '+file)
-        self.filename = clean_title(artis)
-        thumb = soup.find('script').text.strip()
-        m1 = thumb.find('"thumbnailUrl":') + 17
-        self.thumb = thumb[m1:thumb.find('"', m1)]
-        return file
+        self.filex=file
 
 def pythonexter(url):
     proceso = subprocess.Popen(["cmd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -74,20 +65,12 @@ def pythonexter(url):
     output, _ = proceso.communicate()
     lines = output.decode("utf-8", errors="ignore").splitlines()
     code = lines[4][9:12]
-    return lines[8][10:] if code == '302' else url if code == '200' else code , lines
+    return lines[8][10:] if code == '302' else url if code == '200' else code
 
 def texto(f):
     return f.text.strip()
 
-def thumba(url_thumb):
-    f = BytesIO()
-    downloader.download(url_thumb, buffer=f)
-    return f
-
 class Downloader_rule34video(Downloader):
-    '''
-    Downloader
-    '''
     type = 'rule34video'
     strip_header = False
     URLS = ['rule34video.com']
@@ -97,100 +80,82 @@ class Downloader_rule34video(Downloader):
     ACCEPT_COOKIES = [r'(.*\.)?(rule34video)\.(com)']
     user_agent = USERAGENT
 
-    @try_n(2)
     def read(self):
-        cw = self.cw
-        videos = []
-        if '.com/v' in self.url:
-            self.single = True
-            video = Video(self.url, cw)
-            self.urls.append(video.url)
-            self.title = video.filename
-            videos.append(video)
-        else:
-            if '.com/me' in self.url:
-                if '/favourites/' not in self.url :
-                    if 's' not in self.url[-2:] :
-                        if '/' == self.url[-1:] :
-                            self.url += 'videos/'
-                        else:
-                            self.url += '/videos/'
-            self.title, hrefs = get_videos(self.url, cw)
-            self.print_('videos: {}'.format(len(hrefs)))
-            if not hrefs:
-                raise Exception('no hrefs')
-            for href in hrefs:
-                videos.append(Video(href, cw))
-            for vid in videos:
-                self.urls.append(vid.url)
-        self.setIcon(thumba(videos[0].thumb))
+        self.single, self.title, self.urls  = get_videos(self.url, self.dir, self.cw)
         self.enableSegment()
 
-@try_n(4)
-def get_videos(url, cw=None):
-    '''
-    get_videos
-    '''
-    print_ = get_print(cw)
-    soup = Soup(downloader.read_html(url,user_agent=USERAGENT))
-    url_vids = set()
+@try_n(2)
+def get_videos(url, dirx, cw=None):
+    local = {dx[dx.rfind('(')+1:dx.rfind('.')]:raiz+'/'+dx for raiz, _, archivos in os.walk(dirx) for dx in archivos}
     vids = []
-    if '.com/mo' in url:
-        header = 'Artist'
-        title = soup.find('h1').find('span').text.strip()
-        url += '?mode=async&function=get_block&block_id=custom_list_videos_common_videos&sort_by=post_date&from='
-    elif '.com/m' in url:
-        header = 'Member'
-        title = soup.find('div', class_='channel_info').find('h2').text.strip()
-        if '/favourites/' in url:
-            header += ' Favourite'
-            url += '?mode=async&function=get_block&block_id=list_videos_favourite_videos&sort_by=&from_fav_videos='
-        else:
-            url += '?mode=async&function=get_block&block_id=list_videos_uploaded_videos&sort_by=&from_videos='
-    elif '.com/c' in url:
-        header = 'Category'
-        title = soup.find('h1').find('span').text.strip()
-        url += '?mode=async&function=get_block&block_id=custom_list_videos_common_videos&sort_by=post_date&from='
-    elif '.com/t' in url:
-        header = 'Tag'
-        title = soup.find('h1').text.strip()
-        title = title[title.find('h') + 2:]
-        url += '?mode=async&function=get_block&block_id=custom_list_videos_common_videos&sort_by=post_date&from='
-    elif '.com/s' in url:
-        header = 'Search'
-        title = soup.find('h1').text.strip()[12:]
-        url += '?mode=async&function=get_block&block_id=custom_list_videos_videos_list_search&sort_by=&from_videos='
-    elif '.com/p' in url:
-        header = 'Playlists'
-        title = soup.find('h1').text.strip()
-        url += '?mode=async&function=get_block&block_id=playlist_view_playlist_view&sort_by=added2fav_date&from='
-    if not title:
-        raise Exception('No title')
-    print(title)
-    view = soup.find('div', class_='pagination')
-    ultimo = 2
-    if view:
-        pagi = view.findAll('a')
-        last = pagi[len(pagi) - 3].attrs['data-parameters']
-        pagi = None
-        ultimo = int(last[last.rfind(':') + 1:]) + 1
-        last = None
-    for p in range(1, ultimo):
-        check_alive(cw)
-        if p > 1:
-            try:
-                soup = Soup(downloader.read_html(url + str(p),user_agent=USERAGENT))
-            except Exception as e:
-                print_(e)
-        wvids = soup.findAll('a', class_='th')
-        for wvid in wvids:
-            href = wvid.attrs['href']
-            if href in url_vids:
-                continue
-            url_vids.add(href)
-            vids.append(href)
-    
-    if cw:
-        vids = filter_range(vids, cw.range)
-        cw.fped = True
-    return '{}] {}'.format(header, title), vids
+    singlex = '.com/v' in url
+    if singlex:
+        only = Video(url, cw)
+        only.get(url)
+        title = tte = only.filename
+        tte = tte[tte.rfind('(')+1:tte.rfind('.')]
+        vids.append(local[tte] if tte in local else only.url)
+    else:
+        if '.com/me' in url and '/favourites/' not in url and 's' not in url[-2:] :
+            url += 'videos/' if '/' == url[-1:] else '/videos/'
+        print_ = get_print(cw)
+        soup = Soup(downloader.read_html(url,user_agent=USERAGENT))
+        url_vids = set()
+        if '.com/mo' in url:
+            header = 'Artist'
+            title = soup.find('h1').find('span').text.strip()
+            url += '?mode=async&function=get_block&block_id=custom_list_videos_common_videos&sort_by=post_date&from='
+        elif '.com/m' in url:
+            header = 'Member'
+            title = soup.find('div', class_='channel_info').find('h2').text.strip()
+            if '/favourites/' in url:
+                header += ' Favourite'
+                url += '?mode=async&function=get_block&block_id=list_videos_favourite_videos&sort_by=&from_fav_videos='
+            else:
+                url += '?mode=async&function=get_block&block_id=list_videos_uploaded_videos&sort_by=&from_videos='
+        elif '.com/c' in url:
+            header = 'Category'
+            title = soup.find('h1').find('span').text.strip()
+            url += '?mode=async&function=get_block&block_id=custom_list_videos_common_videos&sort_by=post_date&from='
+        elif '.com/t' in url:
+            header = 'Tag'
+            title = soup.find('h1').text.strip()
+            title = title[title.find('h') + 2:]
+            url += '?mode=async&function=get_block&block_id=custom_list_videos_common_videos&sort_by=post_date&from='
+        elif '.com/s' in url:
+            header = 'Search'
+            title = soup.find('h1').text.strip()[12:]
+            url += '?mode=async&function=get_block&block_id=custom_list_videos_videos_list_search&sort_by=&from_videos='
+        elif '.com/p' in url:
+            header = 'Playlists'
+            title = soup.find('h1').text.strip()
+            url += '?mode=async&function=get_block&block_id=playlist_view_playlist_view&sort_by=added2fav_date&from='
+        if not title:
+            raise Exception('No title')
+        print_(title)
+        title = f'{header}]{title}'
+        view = soup.find('div', class_='pagination')
+        ultimo = 2
+        if view:
+            pagi = view.findAll('a')
+            last = pagi[len(pagi) - 3].attrs['data-parameters']
+            pagi = None
+            ultimo = int(last[last.rfind(':') + 1:]) + 1
+            last = None
+        for p in range(1, ultimo):
+            check_alive(cw)
+            if p > 1:
+                try:
+                    soup = Soup(downloader.read_html(url + str(p),user_agent=USERAGENT))
+                except Exception as e:
+                    print_(e)
+            for wvid in soup.findAll('a', class_='th'):
+                href = wvid.attrs['href']
+                if href in url_vids:
+                    continue
+                m1 = href.find('/',href.find('.') + 6) + 1
+                m2 = href.find('/', m1)
+                tte = href[m1:m2]
+                vids.append(local[tte] if tte in local else Video(href, cw).url)
+                url_vids.add(href)
+    return singlex, title, vids
