@@ -1,55 +1,44 @@
 #coding:utf8
-#title_en: Spankbang
-#https://spankbang.com/
-'''
-Spankbang Downloader
-'''
+#title_en:Spankbang
+#comment:https://spankbang.com/
+
 import downloader
 from io import BytesIO
-from utils import (Downloader, Soup, try_n, LazyUrl, get_print,
-                   Session, filter_range,
-                   clean_title, check_alive)
+from utils import Downloader, Soup, try_n, LazyUrl, get_print,Session, clean_title, get_resolution
 from error_printer import print_error
 
 class Video:
-    '''
-    Video
-    '''
-    def __init__(self, url, cwz, session):
-        self.url = LazyUrl(url, self.get, self)
+    def __init__(self, url, cwz):
         self.cw = cwz
-        self.session = session
-
+        urlx = self.get(url)
+        self.url = LazyUrl(url, lambda _: urlx, self)
+        
     @try_n(2)
     def get(self, url):
-        '''
-        get
-        '''
-        cw = self.cw
-        session = self.session
-        print_ = get_print(cw)
+        print_ = get_print(self.cw)
         try:
-            ##html = downloader.read_html(url, session=session)
             html = downloader.read_html(url)
             soup = Soup(html)
-        except Exception as e: #3511
+        except Exception as e:
             print_(print_error(e))
-        # 1968
+        print_(url)
         title = soup.find('h1').text.strip()
         code = soup.find('meta', {'property': 'og:url'}).attrs['content']
         m1 = code.find('/', 13) + 1
         m2 = code.find('/', m1)
-        title = title +'('+ code[m1:m2] + '.mp4'
+        self.filename = clean_title(title) +'('+ code[m1:m2] + '.mp4'
         file = soup.find('main').find('script',{'type': 'text/javascript'}).text.strip()
-        MARRAY = ["'1080p':","'720p':","'480p':","'320p':","'240p':"]
+        MARRAY = [2160,1080,720,480,320,240]
+        reso = get_resolution()
         for mo in MARRAY:
-            uno = file.find(mo)
+            if reso < mo:
+                continue
+            uno = file.find(f"'{mo}p':" if mo!=2160 else "'4k':")
             uno = file.find("[",uno)
             dos = file.find("]", uno)
             if dos - uno > 1 :
                 file = file[uno+2:dos-1]
                 break
-        self.filename = clean_title(title)
         self.thumb = soup.find('meta', {'property': 'og:image'}).attrs['content']
         return file
 
@@ -62,9 +51,6 @@ def thumba(url_thumb):
     return f
 
 class Downloader_spankbang(Downloader):
-    '''
-    Downloader
-    '''
     type = 'spankbang'
     single = True
     strip_header = False
@@ -77,11 +63,10 @@ class Downloader_spankbang(Downloader):
     @try_n(2)
     def read(self):
         cw = self.cw
-        session = self.session = Session()
+        session = Session()
         videos = []
-        if '/video/' in self.url:
-            video = Video(self.url, cw, session)
-            video.url()
+        if '/video/' in self.url or '-' in self.url[self.url.find('/', 13):self.url.find('/', self.url.find('/', 13)+1)]:
+            video = Video(self.url, cw)
             self.urls.append(video.url)
             self.title = video.filename
         else:
@@ -91,19 +76,13 @@ class Downloader_spankbang(Downloader):
             self.print_('videos: {}'.format(len(hrefs)))
             if not hrefs:
                 raise Exception('no hrefs')
-            videos = [Video(href, cw, session) for href in hrefs]
+            videos = [Video(href, cw) for href in hrefs]
             video = self.process_playlist(info['title'], videos)
         self.setIcon(thumba(video.thumb))
-        self.enableSegment()
-        #self.enableSegment(n_threads=8)
-        #self.enableSegment(chunk=524288)
-        #self.enableSegment(overwrite=True)
+        self.enableSegment(chunk=2**20,n_threads=4)
 
 @try_n(4)
-def get_videos(url, session, cw=None):
-    '''
-    get_videos
-    '''
+def get_videos(url, session, cw):
     print_ = get_print(cw)
     html = downloader.read_html(url)
     soup = Soup(html)
@@ -113,10 +92,12 @@ def get_videos(url, session, cw=None):
     title = soup.find('em').text.strip()
     if not title:
         raise Exception('No title')
-    print(title)
-    info['title'] = title
+    info['title'] = clean_title(title)
+    view = soup.find('li', class_='next')
+    url = None
+    if view:
+        url = view.find('a').attrs['href']
     while True:
-        check_alive(cw)
         wvids = soup.find(id ='container').find('div', class_='video-list').findAll('a', class_='thumb')
         for wvid in wvids:
             href = 'https://spankbang.com' + wvid.attrs['href']
@@ -124,19 +105,13 @@ def get_videos(url, session, cw=None):
                 continue
             url_vids.add(href)
             vids.append(href)
-        view = soup.find('li', class_='next')
-        if view:
-            url = 'https://spankbang.com' + view.find('a').attrs['href']
+        if url:
             try:
-                soup = downloader.read_soup(url, session=session)
+                soup = downloader.read_soup('https://spankbang.com' + url, session=session)
+                url = soup.find('li', class_='next').find('a').attrs['href']
             except Exception as e:
                 print_(e)
         else:
             break
-    
-    if cw:
-        vids = filter_range(vids, cw.range)
-        cw.fped = True
-
     info['vids'] = vids
     return info
