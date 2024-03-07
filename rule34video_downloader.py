@@ -95,6 +95,7 @@ class Downloader_rule34video(Downloader):
     user_agent = USERAGENT
 
     def read(self):
+        self.print_('v1.00')
         self.single, self.title, self.urls  = get_videos(self.url, self.dir, self.cw)
         self.enableSegment()
 
