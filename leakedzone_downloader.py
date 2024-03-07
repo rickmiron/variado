@@ -28,7 +28,7 @@ class Video:
         self.url = LazyUrl(url, self.get, self)
 
     def get(self,url):
-        m = lambda: M3u8_stream(url,referer='https://leakedzone.com/', n_thread=2)
+        m = lambda: M3u8_stream(url,referer='https://leakedzone.com/', deco=self.cortabyte if '/icon.' in url else None, n_thread=2)
         try:
             m = m()
         except Exception as e:
