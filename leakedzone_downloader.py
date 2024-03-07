@@ -36,6 +36,9 @@ class Video:
         if getattr(m, 'live', None) is not None:
             m = m.live
         return m
+    
+    def cortabyte(self,dato):
+        return dato[8:]
 
 def get_imgs(url,cw):
     url = url[url.find('.')+5:]
