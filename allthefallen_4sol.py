@@ -18,24 +18,33 @@ class Downloader_allthefallen(Downloader):
     ACCEPT_COOKIES = [r'(.*\.)?(allthefallen\.moe)']
 
     def read(self):
-        self.print_('v1.00')
+        self.print_('v1.01')
         self.urls, self.single = get_imgs(self.url, self.cw)
         self.print_('fin')
 
 def get_imgs(url, cw):
     print_=get_print(cw)
+    print_('ini')
     arrurls = []
     single = '.moe/posts/' in url
     if single:
+        print_('single true')
         un = url.find('?')
         if un != -1:
             url = url[:un]
+        print_('if: '+url)
         response = requests.get(url+'.json')
+        print_('requests ok')
         if response.status_code==200:
+            print_('status 200 ini')
             jo = response.json()
+            print_('reponse json')
             idx = str(jo['id'])
-            arrurls.append(Image(idx, jo['file_url']).url)
+            print_('idx: '+idx)
+            arrurls.append(Image(idx, jo['file_url'],cw).url)
+            print_('append ok')
             cw.downloader.title = '[moe]'+idx
+            print_('status 200 fin')
         return arrurls,single
     un=url.find('tags=')+5
     dos=url.find('&',un)
@@ -78,17 +87,21 @@ def get_imgs(url, cw):
         for jo in response.json():
             idx=str(jo['id'])
             url_img = local_ids[idx] if idx in local_ids else jo['file_url']
-            arrurls.append(Image(idx, url_img).url)
+            arrurls.append(Image(idx, url_img,cw).url)
         cw.setTitle('{}  {} - {}'.format(tr_('읽는 중...'), title, len(arrurls)))
     cw.setTitle(title)
     return arrurls,single
 
 class Image:
-    def __init__(self, idx, urx):
+    def __init__(self, idx, urx,cw):
+        self.cw = cw
         self.idx = idx
         self.urx = urx
         self.url = LazyUrl('', self.get, self)
 
     def get(self, _):
+        print_=get_print(self.cw)
+        print_('ini get: '+self.idx)
         self.filename = self.idx+os.path.splitext(self.urx)[1]
+        print_('fin get: '+self.filename)
         return self.urx
