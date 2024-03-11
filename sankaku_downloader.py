@@ -185,7 +185,7 @@ def get_imgs(url, tipe, cw, session=None):
             url_old = url
             nexurl = soup.find('div', class_='pagination').attrs.get('next-page-url')
             if nexurl:
-                nexurl = nexurl[:nexurl.rfind('&')].replace('amp;','').replace('%25','%')
+                nexurl = nexurl[:nexurl.find('&')]+nexurl[nexurl.rfind('&'):].replace('amp;','').replace('%25','%')
                 url = f'https://{tipe}.sankakucomplex.com{nexurl}'
             else:
                 break
