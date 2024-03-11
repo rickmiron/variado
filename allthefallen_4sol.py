@@ -2,10 +2,10 @@
 #title_en: Allthefallen Moe
 #comment: https://booru.allthefallen.moe/
 import os
-from utils import Downloader, LazyUrl, clean_title, get_print
+import downloader
+from utils import Downloader, LazyUrl, clean_title, get_print, Session
 from translator import tr_
 from urllib.parse import unquote
-import requests
 
 @Downloader.register
 class Downloader_allthefallen(Downloader):
@@ -18,11 +18,12 @@ class Downloader_allthefallen(Downloader):
     ACCEPT_COOKIES = [r'(.*\.)?(allthefallen\.moe)']
 
     def read(self):
-        self.print_('v1.01')
-        self.urls, self.single = get_imgs(self.url, self.cw)
+        self.session = Session()
+        self.print_('v1.02')
+        self.urls, self.single = get_imgs(self.url, self.cw, self.session)
         self.print_('fin')
 
-def get_imgs(url, cw):
+def get_imgs(url, cw, sesion):
     print_=get_print(cw)
     print_('ini')
     arrurls = []
@@ -33,18 +34,14 @@ def get_imgs(url, cw):
         if un != -1:
             url = url[:un]
         print_('if: '+url)
-        response = requests.get(url+'.json')
+        jo = downloader.read_json(url+'.json', session=sesion)
         print_('requests ok')
-        if response.status_code==200:
-            print_('status 200 ini')
-            jo = response.json()
-            print_('reponse json')
-            idx = str(jo['id'])
-            print_('idx: '+idx)
-            arrurls.append(Image(idx, jo['file_url'],cw).url)
-            print_('append ok')
-            cw.downloader.title = '[moe]'+idx
-            print_('status 200 fin')
+        idx = str(jo['id'])
+        print_('idx: '+idx)
+        arrurls.append(Image(idx, jo['file_url'],cw).url)
+        print_('append ok')
+        cw.downloader.title = '[moe]'+idx
+        print_('requests fin')
         return arrurls,single
     un=url.find('tags=')+5
     dos=url.find('&',un)
@@ -70,21 +67,9 @@ def get_imgs(url, cw):
         local_ids[idx] = os.path.join(dirx, name)
     pos = 1
     while pos<31:
-        try:
-            response = requests.get(f'https://booru.allthefallen.moe/posts.json?page={pos}&limit=200&tags={url}+-status%3Abanned')
-        except requests.exceptions.ConnectionError as e:
-            print_("Error conexion:", e)
-            raise
-        except requests.exceptions.HTTPError as e:
-            print_("Error HTTP:", e.response.status_code, e.response.reason)
-            raise
-        except requests.exceptions.RequestException as e:
-            print_("Error:", e)
-            raise
-        if response.status_code!=200 or 'Content-Length' in response.headers:
-            break
+        response = downloader.read_json(f'https://booru.allthefallen.moe/posts.json?page={pos}&limit=200&tags={url}+-status%3Abanned', session=sesion)
         pos+=1
-        for jo in response.json():
+        for jo in response:
             idx=str(jo['id'])
             url_img = local_ids[idx] if idx in local_ids else jo['file_url']
             arrurls.append(Image(idx, url_img,cw).url)
