@@ -25,7 +25,7 @@ class Video:
         sesion.headers.clear()
         sesion.headers.update({'Origin':'https://missav.com','User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'})
         if urlv[urlv.rfind('.'):] == '.m3u8':
-            m = lambda: M3u8_stream(urlv,referer='https://missav.com', n_thread=4)
+            m = lambda: M3u8_stream(urlv,session=sesion, n_thread=4)
             try:
                 m = m()
             except Exception as e:
