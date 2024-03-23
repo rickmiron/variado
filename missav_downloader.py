@@ -4,7 +4,7 @@
 #author: Rickelpapu
 
 import downloader
-from utils import Downloader, try_n, LazyUrl, get_print,Soup,clean_title
+from utils import Downloader, try_n, LazyUrl, get_print,Soup,clean_title,Session
 from translator import tr_
 from error_printer import print_error
 from m3u8_tools import M3u8_stream
