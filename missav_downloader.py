@@ -12,18 +12,19 @@ from io import BytesIO
 from PIL import Image
 from ffmpeg import convert, run
 from os import remove, makedirs, path
-
+USERAGEN = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
 class Video:
     def __init__(self, url, cwz, dir):
         self.cw = cwz
         self.dir = dir
-        get_print(self.cw)('Get ofuscado')
+        pt_=get_print(self.cw)
+        pt_('Get ofuscado')
         urlv = self.ofuscado(url)
-        get_print(self.cw)(urlv)
+        pt_(urlv)
         sesion=Session()
         sesion.cookies.clear()
         sesion.headers.clear()
-        sesion.headers.update({'Origin':'https://missav.com','User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'})
+        sesion.headers.update({'Origin':'https://missav.com','User-Agent':USERAGEN})
         if urlv[urlv.rfind('.'):] == '.m3u8':
             m = lambda: M3u8_stream(urlv,session=sesion, n_thread=4)
             try:
@@ -36,10 +37,10 @@ class Video:
             m = urlv.replace('.mpd','.mp4')
         self.thumb = BytesIO()
         self.thumbz = BytesIO()
-        self.cw.setTitle('{}...{}'.format(tr_('썸네일 다운로드'), self.filename))
-        get_print(self.cw)(self.urlthumb)
+        self.cw.setTitle(f'{tr_("썸네일 고정")}...{self.filename}')
+        pt_(self.urlthumb)
         downloader.download(self.urlthumb, buffer=self.thumbz)
-        self.dirfile = '{}\\{}'.format(dir, self.filename)
+        self.dirfile = f'{dir}\\{self.filename}'
         self.tojpg()
         self.havethumbnail()
         self.url = LazyUrl('https://missav.com/', lambda _: m, self, pp=self.pp)
@@ -51,7 +52,7 @@ class Video:
                 if isinstance(ee, str) and 'attached pic' in ee:
                     break
             else:
-                self.cw.setTitle('{}...{}'.format(tr_('썸네일 고정'), self.filename))
+                self.cw.setTitle(f'{tr_("썸네일 고정")}...{self.filename}')
                 self.pp(self.dirfile)
 
     def tojpg(self):
@@ -71,7 +72,7 @@ class Video:
     def ofuscado(self, url):
         print_ = get_print(self.cw)
         try:
-            soup = Soup(downloader.read_html(url,user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'))
+            soup = Soup(downloader.read_html(url,user_agent=USERAGEN))
         except Exception as e:
             print_(print_error(e))
         self.urlthumb = soup.find('meta', {'property': 'og:image'}).attrs['content']
@@ -99,7 +100,7 @@ class Video:
         url = ''.join(narray)
         if not vid:
             return url
-        codigo = downloader.read_html(url,headers={'Origin':'https://missav.com'},user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
+        codigo = downloader.read_html(url,headers={'Origin':'https://missav.com'},user_agent=USERAGEN)
         un = codigo.find('\n',codigo.rfind('INF:'))+1
         return url.replace('playlist.m3u8',codigo[un:codigo.find('\n',un)])
     
@@ -107,7 +108,7 @@ class Video:
         self.thumb.seek(0)
         bythum = self.thumb.read()
         if len(bythum) > 0:
-            pathum = '{}.I'.format(filename)
+            pathum = f'{filename}.I'
             with open(pathum, 'wb') as f:
                 f.write(bythum)
             f.close
@@ -122,7 +123,7 @@ class Downloader_missav(Downloader):
     URLS = ['missav.com']
     display_name = 'Missav'
     MAX_PARALLEL = 2
-    icon = 'base64:AAABAAEAICAAAAEAIAAoEAAAFgAAACgAAAAgAAAAQAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAABAAAAAAAAAAAAAAEAAAABAAEAgGPjEodi7luLYvmeimL2zYpi9+qNYfz+jWH8/opi9uqKY/bNi2L5nodi71uAY+MSAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAEAAAAAAAAAgGDsKIhi9Z6MYvr0jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OY/7/jmL+/4xi+vSJYvWegGDsKAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgWrVDIhf9I6MYvz4jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmP+/45i/v+MYvz4iV/1joBq1AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAINk7CmKYfnTjmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+PYv7/jmL+/45i/v+OYv7/jmL+/49i/v+OYv7/jmL+/45i/v+OYv7/imH404Nk7CkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACCZOszjGH66Y5i/v+OY/7/jmL+/45i/v+PYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i//+OYv7/jmL+/45j/v+PYv7/jGH66YJk6zMAAQAAAAAAAAAAAAAAAQAAAAABAAAAAAAAAAAAg2TsKYxh+umOYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45j//+OYv7/jmL+/45i/v+PYv7/jmL+/45i/v+PYv7/jmL+/45j//+OYv7/jmL+/45i//+PYv7/jGH66YNk7CkAAAEAAAABAAAAAAAAAAAAAAABAIBq1AyKYfjTjmP+/45i/v+OYv7/jmL+/45j/v+OYv//jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45j/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/imH404Br1AwAAAAAAAAAAAAAAAAAAAAAiF/0jo5i/v+OYv7/jmL+/49i/v+OYv7/jmL+/45i//+OYv7/jmL//49i/v+PYv7/j2L+/45i/v+OYv7/jmP+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i//+OYv7/j2L+/45i/v+OYv7/iF/0jgABAAAAAQAAAAAAAIBh7CiMYvz4j2L+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv//jmL+/45i/v+OYv7/jmL+/45j/v+OYv7/jmL//45i/v+OYv7/jmL+/45i/v+OY/7/jmL+/45i//+OYv//j2L+/49i/v+MYvz4gGDsKAAAAAAAAAAAiWL0no5i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/597/f/g1vv/zLn9/5Zv/P+OYv7/jmL//45i/v+OYv7/jmP+/45j/v+PYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+JYvWeAAAAAIBj4xKNYvr0jmL+/45j//+OYv7/jmL+/45i/v+OYv7/jmP+/45i/v+OYv7/xrL4///+////////9fL+/7qh/P+QZP3/jmL+/49i/v+OYv7/jmL+/45j/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/4xj+vSAY+MSh2LuW45j/v+OYv//jmL+/45i/v+OYv7/jmL//45i//+OYv7/jmL+/45i/v/Itvj////+///////+/////////+be/P+oiPz/jmL+/45i/v+OYv7/j2L+/45i/v+OYv7/jmL+/45i/v+PYv7/jmL+/45i/v+OY/7/jmL+/4di7luLYvmejmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmP+/8i2+P////////////////////7///////39///Tw/z/mHL7/45i/v+OYv7/jmL+/49i/v+OYv7/jmL+/45i/v+PYv7/jmL+/45i/v+OYv//i2L4nopi9s2OYv7/j2L+/49i/v+OY/7/jmL+/45i/v+OYv7/j2L+/45i/v+OYv7/yLb4//7///////////////////////////////7////39f7/v6j6/5Fm/v+PYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45j/v+KYvbNimL36o5i/v+OYv7/jmL+/49i/v+OYv7/jmL+/45i//+OYv7/jmL+/45i/v/Itvj//v///////////////v////7//v//////////////////////6uL9/6uM/P+OYv7/jmL+/45i/v+OYv7/j2L+/45j/v+OYv7/jmL+/4pi9+qNYfz+jmL+/45i/v+OYv7/jmP+/45i/v+OYv7/jmL+/45j/v+OYv//jmL+/8i2+P////////7///7//v////////////////////////7//////////////v7//6aH+/+OY/7/jmL+/49i/v+OYv7/jmL+/45j/v+OYv7/jWH8/o1h/P6OYv7/j2L+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/yLb5/////////////v////////////////////7//////////v/////////9/f7/pIP6/45i/v+OYv7/jmP+/45i/v+OYv7/jmL+/45i/v+NYfz+imL36o5i/v+OY/7/jmL//45i//+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v/Itvj/////////////////////////////////////////////////5t/8/6eH+v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/4pi9+qKYvbNjmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/49i/v+OYv//jmL+/8m2+P///v/////////////+////////////////////9fL9/7uj+/+QZf7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/imP3zYti+Z6OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/yLb4/////////////////////////v///f3+/9HA/P+Wbv3/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmP+/45i//+OYv7/jmL+/49i//+LYvmeh2PuW45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv//j2L+/45i/v/Itvj//////////////////////+Pa/f+igPv/jmL+/45i/v+OYv7/jmL+/45i//+OYv7/jmL+/45i/v+OYv//jmL//45i/v+OY/7/jmL+/4di7luAY+MSjGL69I5i/v+OY/7/jmL+/45i/v+OYv//jmP+/45i/v+OYv7/jmP+/8ey+f////////////Pv/f+3nPz/jmP+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45j/v+OY/7/jmL+/45i/v+OYv7/jmL+/45i/v+MYvr0gGPjEgAAAACJY/WejmL//45i/v+OYv7/jmL+/45i/v+OYv7/j2L+/45i/v+OYv7/n3n9/9/T/v/ItPz/k2r8/45i/v+OYv7/j2L+/45i/v+OYv7/jmL+/45j/v+OYv7/j2P+/45j/v+OYv7/jmL+/49i/v+OYv7/jmL+/4li9Z4AAAEAAAAAAIBg7CiMY/z4jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/j2L+/45i/v+OYv7/jmL+/45i/v+OYv//jmL+/45i/v+OYv7/j2L+/45i/v+OYv7/jmL+/45i//+OYv7/jmP+/45j/v+OYv7/jmL+/45i/v+MYvz4gGDsKAAAAAAAAAAAAAEAAIhf9I6OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45j/v+OYv7/jmL+/45j/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/4hf9Y4AAAAAAAAAAAAAAAAAAAAAgGrVDIph+NOOYv7/jmL//45i/v+OYv7/jmL+/45i//+OYv7/jmL+/45i/v+OYv7/jmL+/45j/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OY/7/j2L+/45i/v+OYv//jmL+/45i/v+KYfjTgGrUDAAAAAAAAQEAAAAAAAAAAQAAAAAAg2TsKYxh+umOYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45j/v+OYv7/jmL+/49i/v+OYv7/jmL+/45i/v+PYv//jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jGH66YNl7CkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgmTrM4xh+umOYv7/j2L+/45i/v+OYv//jmP+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL//49j//+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+PYv7/j2L+/41h+umDZOozAAAAAAAAAAAAAAAAAAAAAAAAAQABAAAAAAAAAAAAAQAAAQAAg2TsKYph+NOOYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i/v+OYv//jmL+/45i/v+OYv7/jmL+/49i/v+OYv7/jmL+/45i/v+KYfjTg2TsKQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgGrUDIhf9I6MY/z4jmL+/45i/v+OYv7/jmL+/45j/v+OYv7/jmL+/45i/v+OYv7/j2L+/45i/v+OYv7/jmL+/45i/v+MYvz4iF70joBq1AwAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAQAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAIBg7CiJYvWejGL69I5i/v+OYv7/jmL+/45i/v+OYv7/jmL+/45i//+OYv7/jmL+/45i/v+MY/r0iWP1noBg7SgBAAAAAAAAAAABAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAY+MSh2LuW4ti+Z6KYvbNimL36o1h/P6MYfz+imL36opi9s2LYvmeh2LuW4Bj4xIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAAAAAAAAAAAA'
+    icon = 'base64:iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAABSBJREFUWEedV99vFEUc/8zsbduo0AbRUBHbhpdqQuKDCW2qb0Zp0EeejCmctFDwD9DE4J01KCHqSwWt2mCM8aEQYgI0IUajtEpTo5hGFEJtQUtPI63Xn7e3P8bMzs7uzN7etnoPl93Zme/Pz/fz/Q4B/xEAzH8KnglAWLiWz+fowd+Mlk1G3f1LsJ+rZXS3Sc1Gg5FafsQFs2xmz1rEO38PzE/n3NJfJ1vcqXwu50mxQnagSFnkK9ovskV8msu+8Xg9ap63mfNUDTJNIL65ms2aAAZWhnPTJObFIqxPNg2+NKL6l6Qvvua/sz17jJkNj5xoRH1PipWJZ+Uid3QWxYGtiz8fokNnXOaHmXsgnoQjCeYV9r6241561wcG6M7EDCWGIMlPsebCG7vjrXRvOXVkQrWYf5VZCfP/fdeLOx6lLcMUZGuqewpk/Igpm6UpMnKMAB5jM1e8qc7HTvWHRvgGKMgD93wzvVsoT0tcqmUSwGqoxRo34m9vuXPLx0cmpMVhennOnQ07R2XY08Cp5jAeUq2YEsDK05FZHOsgQ0OuzKQv44/sq+8/gPqeABl6TBM8FgH6f2G6jeLAg4P5A6EBc9k3ealdqkB7tVD/F73BXvUIx0SRlZ/wSzSfy9FXbm08SQC/3CIwJWjZthmk91mwnyaBM6OA64YHOJoZl6zBMeaB8pkBA30PLfSSP7v6ttfT2i9qSKa5IqIxeWz/LtD2hwVPWGXgxDlgsgCsWuspGI0DbOZM/+NZTxI7e7zdYMaoZDiV43z9wR/hKN7fCdLW6hOJv892wSZvwz47AvNGISootS6lEEnt0ikG5hK3g8xnj/bXk7rDgaZ0ZuvuBG1rleqjvYzB/uoKjM8vgy5ZCs9FbBdxX3SsiNK7ZGXfsak6UtMscleJbZVU3O5OGG2tipFcbNAcANjzC6AXxoHL10BX9LQkoaPE7GliZ98qGRBdreKnaufNsXsXaJvAQEIYhAOuC29+Gc47p2EWioldS4rlXZR42bdD4FfDcJi2IAVJtsr4yW+sVIbz3jlkJm6m82ZoQKJ2vYhZkgFxzYE6ZtnwPhwG/WEy3QA1BWvxS6IB8Vx4HlhxBd7ABdDrM6nKXcIssrrv2FQtMZvjO+PG8HevW5ahdJOnPQqBs7QMen4c+O4XkMXSGtxAUGLlaTKXPdrfgLrD+u6ok2kUqqZADT1jcL6ZAD37LcjiaihKcyJ8iVb9Mixnj7dnNCKqPm7pKeBM4oFNzsL58keY4zeqeqzNQHEiKnT1bW8IqDgNA4QQuC88DUNSse2g/NEwzKu/gy6Lmk/tI0pcOJNazJkuciqWzYgCPdoEq/kjTHOb7kPm4DNwfr0F+tnXILYjuVoLu26MoAdlyJbGDrzOmxF/4+14I2ouGaEXMQbim0Ihki3FWOILUDDpP4rWWCUl4lwRvB2/PBLOhGIgaeipnHakijXGj6Sy0S8F4TTMB5Jtg/kDGoXoI5lQ6huzFjkEfq5rG2dq5o1lFsY6yOnYSMYFzKpDaUIAk9C8LsVBk/MQDKXKeK6N5VzY+F4+ljcPU9DYWF5dVZw1QgQpUODK1bFcRZk+CBGg0KVfTCKIq+DSbzghGmP3Pv5a7WISYDsZrPGrmW9x9LcGzYrP0dXs6iE+hlfiNJoldPoMyogfuCMmZnE5ZZkmUK3yKg0JL6eZi0WU/ctpCkWqwqrnOJfL0d4p9Xpu7DZJplEOMi48y2burEVc7Xqey+W8oJxi139pEsG/FsqCXEKpBFMAAAAASUVORK5CYII='
     ACCEPT_COOKIES = [r'(.*\.)?(missav)\.(com)']
 
     @try_n(2)
