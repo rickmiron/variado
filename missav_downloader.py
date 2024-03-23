@@ -20,6 +20,10 @@ class Video:
         get_print(self.cw)('Get ofuscado')
         urlv = self.ofuscado(url)
         get_print(self.cw)(urlv)
+        sesion=Session()
+        sesion.cookies.clear()
+        sesion.headers.clear()
+        sesion.headers.update({'Origin':'https://missav.com','User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'})
         if urlv[urlv.rfind('.'):] == '.m3u8':
             m = lambda: M3u8_stream(urlv,referer='https://missav.com', n_thread=4)
             try:
@@ -95,7 +99,7 @@ class Video:
         url = ''.join(narray)
         if not vid:
             return url
-        codigo = downloader.read_html(url,user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
+        codigo = downloader.read_html(url,headers={'Origin':'https://missav.com'},user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
         un = codigo.find('\n',codigo.rfind('INF:'))+1
         return url.replace('playlist.m3u8',codigo[un:codigo.find('\n',un)])
     
