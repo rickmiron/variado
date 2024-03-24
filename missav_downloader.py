@@ -4,7 +4,7 @@
 #author: Rickelpapu
 
 import downloader
-from utils import Downloader, try_n, LazyUrl, get_print,Soup,clean_title,Session
+from utils import Downloader, try_n, LazyUrl, get_print,Soup,clean_title,Session,get_resolution
 from translator import tr_
 from error_printer import print_error
 from m3u8_tools import M3u8_stream
@@ -86,8 +86,6 @@ class Video:
                 un = len(title)
             title = codigo + title[un:]
         self.filename = clean_title(title)+'.mp4'
-        #if len(self.filename) > 209:
-        #    self.filename = self.filename[:205] + '.mp4'
         codigo = soup.findAll('script', {'type': 'text/javascript'})[-2].text.strip()
         un = codigo.find('eval(')
         codigo = codigo[un:codigo.find('.split(',un) - 1]
@@ -101,8 +99,16 @@ class Video:
         if not vid:
             return url
         codigo = downloader.read_html(url,headers={'Origin':'https://missav.com'},user_agent=USERAGEN)
-        un = codigo.find('\n',codigo.rfind('INF:'))+1
-        return url.replace('playlist.m3u8',codigo[un:codigo.find('\n',un)])
+        reso = get_resolution()
+        for tex in codigo.split()[::-1]:
+            if '#' not in tex:
+                codigo = tex
+            else:
+                un = tex.find('x',tex.find('RESOL'))+1
+                dos = tex.find(',',un)
+                if not int(tex[un: None if dos<0 else dos])>reso:
+                    break
+        return url.replace('playlist.m3u8',codigo)
     
     def pp(self, filename):
         self.thumb.seek(0)
