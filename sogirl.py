@@ -3,7 +3,7 @@
 #comment: https://krXX.sogirl.so/
 
 import downloader
-from utils import Downloader,LazyUrl,Soup,clean_title
+from utils import Downloader, LazyUrl,Soup,clean_title
 from io import BytesIO
 import clf2
 from hashlib import md5
@@ -16,13 +16,14 @@ from timee import sleep
 import shutil
 
 USERAGEN='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+REFER={'Referer': 'https://iframe.mediadelivery.net/'}
 
 @Downloader.register
 class Downloader_sogirl(Downloader):
     type = 'sogirl'
     URLS = ['.sogirl.so']
     display_name = 'SoGirl'
-    icon = 'base64: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'
+    icon = 'base64:iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAABlJJREFUWEeNV11sFFUUPndmdqa7Bbc0uKXbKSouLd0GEn6DQmkjRGktGsXwYnyjlWjiq4li4M0YEiMEX3wxIdGEJ9M2KD9aaCUajSSk/BhT0La7W0oF2t1tu7szs3P13Jk7P9tp4Sab7nTu3vud75zz3e+SZDIpg2cQAKDsmUD49i2aSyQEfC6WigKhAE2UNn4Z3ngyUaM2A07GUTbLd2dvjBwpTn70F9CUIAgUXylVVaYsy9ZyvmHvQgBIqw2Az3IBAGi6RoqFotBmVK37Ru04R0RBBgoiQ2d9+KBAgAKFMgAxqKll35n9eddQsahX2SCIPYH/gD+TZGsSF2XLYYT4VdM0Z/HR2pfuAIAMQAQAyjdn8ykFQizENn5cAUwAWqYAGlAt2zRzdSvfFNnwBsh4rkwB/hMBDIV3nYmHlXYAjJhIdmK8UQckDmkAIIRSoKQMQA0AKI09+uPrPaXpzxSlylRkBV86v2UAvKh0TSPXox03I6IQBQDJTzfF1XmRLE6tyy+fgzsxEAuFe9fXP7x2qDoSKfO6YGCTyVYZZzPaCcDNpzpuKf7NeYacv8E7V5Lrq48yUCgWCukbTTMjb/K6YGnnKUAAg9V7+huV0BYKVCIVodplsmTU3iIOmISvy9hM449+O9thZD+WpBBlNYEAcPMX9GjtmbqtI3a+GRsYMlYNKy27Nb38Pw6U/yesxA0AUuia6Ns6umJFzgLQmpS1kkZGa/emACjmXPBG4EZGYH+qv/pfkMRrjZ05Z/Mlmfeu4rQYtqsGRulB4/2ftmEqSCKRUFqMp5/rj238JaC/7X9RAHMe4plBLEw2jiqJwnuxFm3pSsQ3WO8CUwDrCWsYdYKW3proa/s9FLpHVFUNp+q7UkCIaBG+xKBzEE9ftgB4uB+v68qGZJQH/3CmmJWcAqqHRvXsPXVq+EXS0BCPpBu6M0xSaIBq8nW9ACo2qwWB3mzszrn1YcmiLxp/qrA1C2vG+zaQD9buPHSyftNXHm3w9I9Hb805iGdsBpYgqUOKGd/W75x/vFCgWoK2efriBjK3pXe8WgIntxZuD3rOZSUDyBbT4cXjcs3ufPPKVSjJFUeG01X4Qp+/f+4SKW8/PCMQwV2JKV1AKhwAlR3Pe9UFwrfNqAeyHCOGxIvRriKDlv6eIOaOd2c9LwIjYgsuqoEnUgEYqe/MrZYkfsJb2mLxolMzmyfmjt7ZSiIDl2YABqOWMi3ffN63w7GX8wlFwZw7DYRfGACazbMUECIEZtMCwiXR04aeXlyOhzt1+7MRORSAlq2pm6WxNJnf0jMelkg0OChP7/hSUJl3D4z/vx6PJIu9q58vLSkpVi3qxvSFK+T4M+09x+qaTzyW1CAdcDrBArCOhM2r6r68s9bSMs3asHusb5+lhPGuSW+/BNR5QBG6kFEHU+qBrP8UccylK+cuMgOAFmL/fNdCVLUxPBHvzNilZWUiCDnNQzx9JervbQqXatrzrSujTpEFCbJ1BjiAsCN1KBcfrEld2M4YOEg2vfFFvXraOYyCtKAiBW1klXFW3T2/TJ4tw2iiYPlmIdhiT2pg73lRHCOJ9QkFnW8q3jXhsWCLWMAonkkNRFHE0w2vZgXBd2pzkxrQob4+wQcNTH1m7dSlzWjbbUOikwPF+qbP4xsGGQifaAUcLAFhs7rxmRe3720CcAozJIdT/W1DK6qn5JDtiHBqLpcTb8ReGa6RxGddJnjiFoN4Mh30IiUGUFqazd/6cePc+BE0Iwq3ZDgN3fD8woKYaei+AwRQPbgjrkiHexFwRGr5HsYiQIuugZ7LNEwPt0fCrjP23QvQGy4sLIjpePcoEXwgbBafyH/Zzse5sBhggkbN/KQ6NdQe8dhyljVuy3kQHMTtuv1D0ZC0FgCdEl5OgtzSMlac3ZDAAAKlufzd4ebZP3tlRTYj4Yjbsl5b7u19BFEsFoXXxVjL6di2ASCYDnYKuWmxEPMG49qFdOMGZaDUoIQuvD/5w8EBgFH3jui3Ky4DFcHw+yEC+URU3+6NbToGhF3RsP94Dwr2jRJ9ngmUGQkdaLlwKn3xwxMiPS9JEsWP75bM9rKND7uYOJsvphSLE1dFIKZpktdoVeepNR2fipIYFgDY1R2pLpdmH/ZM/3r0e6oPyaGQiRHjC3dj12l57c5/CWDfkIibPCQAAAAASUVORK5CYII='
     ACCEPT_COOKIES = [r'(.*\.)?(sogirl)\.(so)']
     MAX_CORE = 4
     MAX_PARALLEL = 2
@@ -41,9 +42,16 @@ class Downloader_sogirl(Downloader):
             self.urls.append(diir+'.mp4')
             self.single = True
         else:
-            if not os.path.exists(diir):
-                os.makedirs(diir)
-            self.urls = getm3u8(infof['iframe'],sesion, diir,self.cw,domi)
+            if '//iframe' in infof['iframe']:
+                if not os.path.exists(diir):
+                    os.makedirs(diir)
+                self.urls = getm3u8(infof['iframe'],sesion, diir,self.cw,domi)
+            else:
+                self.single = True
+                self.enableSegment(chunk=2**20,n_threads=4)
+                self.referer = f'https://{domi}.sogirl.so/'
+                self.urls.append(getmp4(infof['iframe'],domi))
+                self.filenames[self.urls[0]]=self.title+'.mp4'
 
     def post_processing(self):
         if not self.single:
@@ -84,38 +92,57 @@ class Video:
         self.cifralis =cifralis
         self.pinx=pinx
         self.arstr=arstr
-
+    
     def get(self,urlx):
         ind = self.pos//3
-        while ind not in self.cifralis:
+        while len(self.cifralis) <= ind:
             if self.pos%3==0:
                 if self.pos%12==0:
                     ackey = ind*12
                     mdd5 = md5(f'{self.arstr[0]}_{self.arstr[1]}_{ackey}.000001_false_720'.encode('utf8')).hexdigest()
                     self.pinx[1]=f'{self.arstr[2]}/ping?hash={mdd5}&time={ackey}.000001&paused=false&resolution=720'
-                self.session.get(self.pinx[1],headers={'Referer': 'https://iframe.mediadelivery.net/'})
-                clave = self.session.get(self.arstr[3]+str(ind),headers={'referer': 'https://iframe.mediadelivery.net/'})
-                self.cifralis[ind]=(Cipher(algorithms.AES(clave.content), modes.CBC(self.arstr[4]), backend=default_backend()))
+                self.session.get(self.pinx[1],headers=REFER)
+                clave = self.session.get(self.arstr[3]+str(ind),headers=REFER)
+                while len(self.cifralis) != ind:
+                    sleep(0.01)
+                self.cifralis.append(Cipher(algorithms.AES(clave.content), modes.CBC(self.arstr[4]), backend=default_backend()))
                 break
             else:
                 sleep(0.01)
         descri = self.cifralis[ind].decryptor()
-        pvid = self.session.get(urlx,headers={'Referer': 'https://iframe.mediadelivery.net/'})
+        pvid = self.session.get(urlx,headers=REFER)
         filedes = descri.update(pvid.content) + descri.finalize()
         ruta=self.arstr[5]+'/'+self.filename
         with open(ruta, 'wb') as file:
             file.write(filedes)
         return ruta
 
+def getmp4(urlx,domi):
+    he = {'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'}
+    da = {'action': 'fv_fp_get_video_url', 'sources[0][src]': urlx,'sources[0][type]':'video/mp4'}
+    dato = requests.post(f'https://{domi}.sogirl.so/wp-admin/admin-ajax.php',headers=he,data=da)
+    texto=dato.text
+    un=texto.find('https:')
+    return texto[un:texto.find('"',un)].replace('\/','/')
+
 def getinf(urlx,domi):
     info = {}
     sesion = clf2.solve(f'https://{domi}.sogirl.so/wp-json/')['session']
     soup = Soup(downloader.read_html(urlx,session=sesion))
     info['filename'] = clean_title(soup.find('meta', {'property': 'og:title'})['content'].strip())
-    urlthumb = soup.find('meta', {'property': 'og:image'})['content']
+    thumb = soup.find('meta', {'property': 'og:image'})['content']
     info['thumb'] = BytesIO()
-    downloader.download(urlthumb, buffer=info['thumb'], session=sesion)
-    info['iframe'] = soup.find('iframe')['data-lazy-src']
+    downloader.download(thumb, buffer=info['thumb'], session=sesion)
+    thumb = soup.find('iframe')['data-lazy-src']
+    if '//iframe' in thumb:
+        info['iframe'] = thumb
+    else:
+        for a in soup.find(class_='fp-playlist-external').findAll('a'):
+            if '#' == a['href']:
+                daem=a['data-item']
+                un=daem.find('https:')
+                info['iframe']=daem[un:daem.find('.mp4',un)+4].replace('\/','/')
+                break
     return info
 
 def getm3u8(iframe,sesionx,ruta,cw,domi):
@@ -131,18 +158,18 @@ def getm3u8(iframe,sesionx,ruta,cw,domi):
     mdd5 = md5(f'{arstri[0]}_{arstri[1]}_0_true_0'.encode('utf8')).hexdigest()
     arstri.append(urv)
     pingg= urv+'/ping?hash='+mdd5+'&time=0&paused=true&resolution=0'
-    sesionx.get(pingg,headers={'Referer': 'https://iframe.mediadelivery.net/'})
-    sesionx.get(urv+'/activate',headers={'Referer': 'https://iframe.mediadelivery.net/'})
+    sesionx.get(pingg,headers=REFER)
+    sesionx.get(urv+'/activate',headers=REFER)
     mdd5 = md5(f'{arstri[0]}_{arstri[1]}_0_true_720'.encode('utf8')).hexdigest()
     pingg= urv+'/ping?hash='+mdd5+'&time=0&paused=true&resolution=720'
     lista = sesionx.get(playlis,headers={'Referer': iframe}).text
     linkm3u8 = playlis[:playlis.find('playlist')]+lista.split()[-1]
-    resm3u8 = sesionx.get(linkm3u8,headers={'Referer': 'https://iframe.mediadelivery.net/'}).text
+    resm3u8 = sesionx.get(linkm3u8,headers=REFER).text
     nkey = True
     inf = False
     archunk = []
     pos = 0
-    cifralis = {}
+    cifralis = []
     pinx=[0,pingg]
     tup = None
     for linea in resm3u8.split():
