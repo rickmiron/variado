@@ -13,7 +13,7 @@ class Downloader_av19(Downloader):
     URLS = ['av19.org','av19.gg']
     single = True
     display_name = 'AV19'
-    PARALLEL = 2
+    MAX_PARALLEL = 2
     icon = 'base64:AAABAAEAEBAAAAEAIAAoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP7//wD///8A////AP/+/wD///8A////AP///wD+/v8A////AP7//wD///8B////AP7//wH///8A/v7/AP/+/wD+//8A////AP///wD///8A////AP7//wD//v8A////AP7+/wD+/v8A/v//AP7//wD//v8B////AP/+/wD///8A/v//Af///wAA//8AAP//Af///wD///8A////AP///wD///8A/v//AP///wD//v8A/v//Af/+/wD///8B//7/AP/+/wD///8BAP//AQD//wAA/v8B////AP///wD///8A////AP///wD///8B//7/AP7//wD//v8A/v//AP///wH///8A////AP7+/wAB//8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8A////Af///wD+/v8A//7/AP///wD//v8B////AP///wD///8AAAH/AP///wD+/v8B////AP7//wD//v8B////AAAA/wD///8A/v//AP/+/wD///8A//7/AP7//wD//v8AAAD/AP7//wH///8A////Af///wH//v8A//7/AP///wD///8BAAD/Af7//wD///8A/v//Af/+/wH///8AAQD/AP///wABAP8B/v//AP/+/wD///8B////AP///wD+//8AAAH/Af///wAAAP8B//7/AP7//wD//v8A////AP///wH///8A//7/AP7//wD///8A//7/AP///wD///8B/v//AP/+/wH+//8A////Af///wD///8A////AP///wH//v8A/v//AP///wD+//8A////AP///wD///8A//7/AP7//wD///8B////AP7//wD///8A////Af///wD///8A//7/AP7//wH//v8AAAH/AP///wD///8A/v//AP///wAAAP8A////AP///wD//v8A////AP///wD///8A////AP/+/wD///8AAAD/AQEA/wAAAf8A////AP7//wEAAP8AAAD/AAAA/wH+//8A/v//Af7//wD///8A//7/Af///wD///8A/v7/AP///wAAAP8B/v//AP7//wD//v8A////AQEA/wD///8A//7/AP///wD+/v8A/v7/AP///wH+/v8B////AP7//wH///8A/v//AP///wD+//8A////AP/+/wD///8A/v//Af///wD///8A/v//AP7//wD+/v8B////AP/+/wD///8A/v//Af/+/wD//v8A////AP7//wH//v8B////AP/+/wD//v8A////AP///wH//v8B/v//AP7//wH+//8B/v//AP7+/wH+//8A/v7/AP///wD///8A//7/AP///wD+//8A/v//AP/+/wD//v8A////'
     REFERER = 'https://david.cdnbuzz.buzz/'
 
