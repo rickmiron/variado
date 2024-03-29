@@ -3,7 +3,7 @@
 #comment: https://krXX.sogirl.so/
 
 import downloader
-from utils import Downloader, LazyUrl,Soup,clean_title
+from utils import Downloader, LazyUrl,Soup,clean_title,get_resolution
 from io import BytesIO
 import clf2
 from hashlib import md5
@@ -163,7 +163,16 @@ def getm3u8(iframe,sesionx,ruta,cw,domi):
     mdd5 = md5(f'{arstri[0]}_{arstri[1]}_0_true_720'.encode('utf8')).hexdigest()
     pingg= urv+'/ping?hash='+mdd5+'&time=0&paused=true&resolution=720'
     lista = sesionx.get(playlis,headers={'Referer': iframe}).text
-    linkm3u8 = playlis[:playlis.find('playlist')]+lista.split()[-1]
+    reso = get_resolution()
+    for tex in lista.split()[::-1]:
+        if '#' not in tex:
+            lista = tex
+        else:
+            un = tex.find('x',tex.find('RESOL'))+1
+            dos = tex.find(',',un)
+            if not int(tex[un: None if dos<0 else dos])>reso:
+                break
+    linkm3u8 = playlis[:playlis.find('playlist')]+lista
     resm3u8 = sesionx.get(linkm3u8,headers=REFER).text
     nkey = True
     inf = False
