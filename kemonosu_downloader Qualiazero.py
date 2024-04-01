@@ -109,10 +109,11 @@ def read_post(url, cw,dix):
         for a in content.findAll(recursive=False):
             tex.append(a.text)
         for a in content.findAll('a'):
-            src = a['href']
-            if 'http' not in src:
-                src=KEM+src
-            tex.append(src)
+            src = a.get('href')
+            if src:
+                if 'http' not in src:
+                    src=KEM+src
+                tex.append(src)
         if tex:
             imgs.append(Text(dix+'/'+usuar+'/'+info,info,'\n'.join(tex)).url)
     return usuar, imgs, filenames
