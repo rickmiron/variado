@@ -2,75 +2,56 @@
 #title_en: Fapello
 #comment: https://fapello.com/
 import downloader
-from utils import Downloader, Soup, clean_title, LazyUrl
+from utils import Downloader,Soup,clean_title
 from translator import tr_
-USERAGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+UAG='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+FAP='https://fapello.com/'
 
 class Downloader_fapello(Downloader):
-    type = 'fapello'
-    URLS = ['fapello.com']
-    icon = 'base64:AAABAAEAEBAAAAEAIAAoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAODQ3/Hx0b/x8cG/8fHRv/Hx0b/x8dGv8eHBr/Hx0b/x8cG/8fHBv/Hxwb/x8dG/8fHRv/Hh0b/x8cGv8PDQ3/Hxwa/0A8N/9BPDj/Qj06/0I8Ov9DPT7/REBL/0M+QP9CPT3/Qz07/0I8Ov9CPTj/Qj06/0I9Of9BPDn/Hxwa/yAeJP9HQ17/RkFV/0E9Pf9AOzf/SENi/1tZ2f9PS4z/R0Nh/0E7Nv9BPDv/Qz0//0A8OP9CPT//QjxB/x4cG/8oJE3/Ylzq/11Xz/9IQ2D/Pjo1/0U/Tf9YU7n/YVre/01Ifv9EPkr/VlCp/1tVwP9EP1D/Tkl//0pEb/8eHB3/IB4p/09Ig/9mXOL/WE+i/z86Nv8+ODP/QTxB/2BXyv9iWdX/ZVnV/21i/v9sYfr/TUd1/1BLh/9APEL/HBsZ/xwaGf89ODT/SkNn/11Rrv9ZTJj/Rz9X/0tDY/9tXOD/dWP//3Ri//90Y/7/cmH4/05Gdf9VS4n/Pjg6/x0aGf8cGhj/PDc0/zs2Mf8+OTz/VUqI/2tYyv91X+b/emP7/3xl//99ZP//c17i/3li9P9cTZj/Wk2V/z04OP8cGhj/GxgY/zo1M/86NTP/OjQz/zo0Mf9FPVL/VEd+/2ZTsP+GZv7/g2T5/1tLjv94Xtz/gWPz/3Rb0f9BOkT/GhkW/xoYF/85NTH/OTQw/zk0MP85NDH/ODQu/zYyKv9cSof/j2j+/29Usv8+OEP/eVrI/5Bp//+KZfT/TUFh/xkYFP8aGBb/NzMx/zczMP82MzH/NzIw/zczMP83Miz/WEZ4/4dg3P9EOkz/OjQ2/3FVsP+MY+v/lWj6/1ZFcv8YFhL/GRcW/zYxLv82MC//NzAu/zcxLv83MS7/NTEt/z82Qf9LPVr/NjEu/zYxL/85MjX/XUZ//5hn8f9UQ2r/FxYS/xgXFf80MCz/NTAt/zQwLf81MC3/NDAs/zUwLf80MCz/Mi8r/zQwLf81MC3/NDAt/3NQn/+ka/z/hVvB/yMbJP8YFxX/My8s/zMvLf8yLiz/My8s/zMvLP8zLy3/My8s/zMvLP8zLyz/My8t/zYwMP+IW7//sG///6Zq8f83JUj/FxQU/zIsKv8yLiv/Mi4r/zIuK/8yLiv/Mi4r/zMuK/8yLyv/Mi8r/zIvKv8yLSr/YkZ6/5ti2f+BVa3/Ihsm/xcUFf8xLSv/MSwq/zAsKv8xLCr/MSwq/zEsKv8wLCr/MCwq/zAsKv8xLCr/MSwq/zMtK/86MTn/NS4x/xYUEv8LCwn/FhQT/xcVEv8WFBP/FhQT/xYUEv8XFBP/FxUS/xcUEv8XFRP/FhUS/xYVE/8XFBP/FhQS/xYVEv8LCwj/'
-    display_name = 'Fapello'
-    PARALLEL = 2
-    MAX_CORE = 2
-    ACCEPT_COOKIES = [r'(.*\.)?(fapello\.com)']
-    user_agent = USERAGENT
+    type='fapello'
+    URLS=['fapello.com']
+    icon='base64:iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAABXRJREFUWEeVV1tslEUU/maLgMVwqa0YAlpaet3dbtttty0FqUiBKL6AIjHhQZSYEAw+aEjgQU3EhDeITxLvMSSCMdGCIVpClVJ2u9vdbXe3u71xEQWUoJaLtNDdMTPz//Nfd1v/h/bfc86c+c4355w5PwFAoXsIE/A/TChfpAWTMDkllNtYTAkBqMGl3r3lna8vraoxwbBAsnEitmZbCVDZHp2dKZ6x1AA43hWVNWK1IXzV2rTKSBGEh5lHrIc5koqBEAJaWukWDOQORVmbw1CvYsfD/TGW7B2PMgDMorzKY8+f6lDn2JoV5qVWgHmEILHufRA4kKZpVHXuBwHBcLKf/6dlNgBs4+SJZx+NeghmrYMAqWcOWPK5vHM/RgZ5DhBaXp2FATteDBQoP0zpIsET4GT9qyhd+KS5zvBa6GN8cv575QicdTnzWFXyfRTvEsc0uVP2cAFONO+2MnDmPYwmogJAhUsBoEvoGeWj0i4MtjZFk2zbpwtQIK7s+gBD8YgKoH5GDExT6rZqVgNDbXu1UqXAhsBHuDx5C0PxMANAaJVbA2CqJFlAWkGwojLyw3VyoZaOqmj9oidwyL2Zl7qr+zAyGVajFEkBALS6xmtAr7qX7SVH7SVWvQFn94c5GSyaNRddzTu5zYHhn3D0zxR/HxzoUwE0WABomyu72zS7jtotKJlXyDPBee6I5oMALxaW4N3ydi5jiUtUiqYm4Qx8rgAICQDO2ka7e8cAyi7Z4807ZPf0+r/AJE3LNfGWHbasZCZuoyZynOsS0aAA4KpjDPyPvGfNiACxxu0A6zTK4w58Kd8HfNtBmM7E3MELPfjqxii3i0cYAALq9vjs95+mxgd82wxRpmkGdcFjXOadV4DPnOstd0xd8GtMZSi/J2LRXsGA29ukdRjZdbK3XdVkoGGzhea3hnvw463rkDpTAteEvlVKBoj1KQBqvC2MCCNb+n6q00TrN3HUzr4OJLzPCwAmpjzhE+iv32QERynPEV/0lHZMfX7BgMfbzI8gG+NMHvG0w+HIs0ksU4gUcId/QMz7rJyoPJFT6K/biO+uj+GdayMSdL8E0LDSWgXK4LF1YRH2FbsFbRQYf3AfCx6abZvhdsLum1ex+0oK0dq1aOnvwj2akXv1h3oEA7WNrTbTH+B3NmN23iy+d9ugH+PpKb7H0RIXqh5ZmBWEnsmtqRBG7k8g7FoJT/wc8nTVFg2eE/vW+VqFM4XNvmofiMPBRU2JAB5Qlh+inkQbpji8pAyrHy3MMUsK1dsXkzh9dxzHSl04fuMavrl9UzkCikjveRXAKhlN2KW15ZdGEhiZnLCNlJVRn9PYwu2yyP/3Tez6/RK2LFiEnYuXYuNwTPqL9HYrR9C0GnsLH8O2osXqIMfLsiGpGZsTNMQmad6DKLyDMbxeUIidjy9RCNase//5C7uu/gbGZ8eKSjw3Ku4Bti4cUADseXoDDhUvl2cQv3MXznn58KUGbaMPVlYLWwVAY1Kxo0Cw2mlY05QcREY5wFClEw2phMyCkP+sYOCVNe34dHmxXHj21jha589HU2pYSw0CrM3Px8Fly6RdfWoI4YoKNA4NSTv28mZBAV5eXIQ9l39Fz7/3lHiBUEUZf980dgF/TGUQCvwsADS2rEEGwGxCkM7QbHMnPHPm4EjxUp6IE+k0nhq9iM7SYqwbuyRrW51ZFXKyt3gAQb8OwDRtn28w10HwywrB1KU79/DC1es4XbIM7ReuZC3JXN8bwfMKAN/KNnErma+u7G6tGn1DtJkLbcYJ9PZ0iSNgAKZ/rBDtQWcbn6zyoATQ2qZ0WuFyps9Mjk31ZbUlCPScEd+GWb8tdaDt4hIyTZN9dFQt1fC0IP8DdDkiKdFGTnYAAAAASUVORK5CYII='
+    display_name='Fapello'
+    MAX_PARALLEL=2
+    MAX_CORE=2
+    user_agent=UAG
 
     def read(self):
-        self.title, imvs = get_imgs(self.url,self.cw)
-        for i in imvs:
-            self.urls.append(i.url)
+        self.title,self.urls=getfx(self.url,self.cw)
 
-class Image:
-    def __init__(self, idc, url,idd):
-        self.referer = idc
-        self.filename = idd
-        self.url = LazyUrl(idc, lambda _: url, self)
+class Failx:
+    def __init__(self,idc,url,idd,sg):
+        self.referer=idc
+        self.filename=idd
+        self.segment=sg
+        self.url=url
 
-class Video:
-    def __init__(self, idc, url,idd):
-        self.referer = idc
-        self.filename = idd
-        self.segment = {'chunk': 2**20, 'n_threads': 4, 'overwrite': False}
-        self.url = LazyUrl(idc, lambda _: url, self)
-
-def get_imgs(url,cw):
-    soup = Soup(downloader.read_html(url,user_agent=USERAGENT))
-    title = clean_title(soup.find('h2').text.strip())
-    imgs = []
-    imga = soup.find(id='content').findAll('a')
-    for a in imga:
-        href = a.attrs.get('href')
-        idd = href[href.find('/',20)+1: -1]
-        url = a.find('img').attrs.get('src')
-        url = url[:url.rfind('_')]
-        imgs.append(Image(href, url+'.jpg', idd+'.jpg'))
-        if a.find('img', class_='w-16 h-16'):
-            resu = downloader.requests.head(url+'.mp4',headers={'Referer':'https://fapello.com/'})
-            if resu.status_code != 404:
-                imgs.append(Video('https://fapello.com/', url+'.mp4', idd+'.mp4'))
-            else:
-                imgs.append(Video('https://fapello.com/', url+'.m4v', idd+'.m4v'))
-    show = soup.find(id='showmore')
-    if show:
-        cw.setTitle('{}  {} - {}'.format(tr_('읽는 중...'), title, 32))
-        model = soup.find('link', {'rel': 'canonical'}).attrs['href'][20:-1]
-        last = int(show.attrs.get('data-max')) + 1
-        for p in range(2,last):
-            url = f'https://fapello.com/ajax/model/{model}/page-{p}/'
-            soup = Soup(downloader.read_html(url,user_agent=USERAGENT))
-            imga = soup.findAll('a')
-            for a in imga:
-                href = a.attrs.get('href')
-                idd = href[href.find('/',20)+1: -1]
-                url = a.find('img').attrs.get('src')
-                url = url[:url.rfind('_')]
-                imgs.append(Image(href, url+'.jpg', idd+'.jpg'))
-                if a.find('img', class_='w-16 h-16'):
-                    resu = downloader.requests.head(url+'.mp4',headers={'Referer':'https://fapello.com/'})
-                    if resu.status_code != 404:
-                        imgs.append(Video('https://fapello.com/', url+'.mp4', idd+'.mp4'))
-                    else:
-                        imgs.append(Video('https://fapello.com/', url+'.m4v', idd+'.m4v'))
-            cw.setTitle('{}  {} - {}'.format(tr_('읽는 중...'), title, p*32))
-    return title, imgs
+def getfx(url,cw):
+    imgs=[]
+    p=1
+    while True:
+        soup=Soup(downloader.read_html(url,user_agent=UAG))
+        if p==1:
+            title=clean_title(soup.find('h2').text.strip())
+            show=soup.find(id='showmore')
+            last=int(show.attrs.get('data-max'))-1 if show else 0
+            mod=soup.find('link',{'rel':'canonical'}).attrs['href'][20:-1]
+            soup=soup.find(id='content')
+        for a in soup.findAll('a'):
+            href=a.attrs.get('href')
+            idd=href[href.find('/',20)+1: -1]
+            url=a.find('img').attrs.get('src')
+            url=url[:url.rfind('_')]
+            imgs.append(Failx(href,url+'.jpg',idd+'.jpg',False).url)
+            if a.find('img',class_='w-16 h-16'):
+                ext='.mp4'
+                resu=downloader.requests.head(url+ext,headers={'Referer':FAP})
+                if resu.status_code==404:
+                    ext='.m4v'
+                imgs.append(Failx(FAP,url+ext,idd+ext,True).url)
+        if last<p:
+            break
+        cw.setTitle(f'{tr_("읽는 중...")} {title} - {p*32}')
+        p+=1
+        url=f'{FAP}ajax/model/{mod}/page-{p}/'
+    return title,imgs
