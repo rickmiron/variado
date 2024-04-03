@@ -64,6 +64,7 @@ def read_post(url, cw,dix):
     usuar = clean_title(soup.find('a', class_='post__user-name').text.strip())
     info = clean_title(f'{idp}-{title}-{usuar}')
     imgs = []
+    tex=[]
     filenames = {}
     # Downloads
     for item in soup.findAll('li', class_='post__attachment'):
@@ -89,8 +90,10 @@ def read_post(url, cw,dix):
                 except Exception as e:
                     print_(print_error(e))
                 continue
-            ext = get_ext(href) or '.file'
-            filenames[href] = '{}/{:04}{}'.format(info, len(imgs), ext)
+            if '.kemono.' not in href:
+                tex.append(href)
+                continue
+            filenames[href] = '{}/{:04}{}'.format(info, len(imgs), get_ext(href))
             imgs.append(href)
     # Content
     content = soup.find('div', class_='post__content')
@@ -103,7 +106,6 @@ def read_post(url, cw,dix):
             ext = get_ext(src) or downloader.get_ext(src)
             filenames[src] = f'{info}/{len(imgs):04}{ext}'
             imgs.append(src)
-        tex=[]
         for a in content.findAll('br'):
             a.replace_with('\n')
         for a in content.findAll(recursive=False):
@@ -114,8 +116,8 @@ def read_post(url, cw,dix):
                 if 'http' not in src:
                     src=KEM+src
                 tex.append(src)
-        if tex:
-            imgs.append(Text(dix+'/'+usuar+'/'+info,info,'\n'.join(tex)).url)
+    if tex:
+        imgs.append(Text(dix+'/'+usuar+'/'+info,info,'\n'.join(tex)).url)
     return usuar, imgs, filenames
 
 class Text:
