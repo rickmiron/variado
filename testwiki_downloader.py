@@ -11,7 +11,7 @@ class Downloader_wikipedia(Downloader):
     URLS = ['https://www.wikipedia.org/'] #is the type of url that will be accepted
     display_name = 'Test'
     #icon = 'base64:codigo_base64' #If you want to show the page icon you can place it in a base64 format string
-    PARALLEL = 2 #number of tasks of the same type to download in parallel
+    MAX_PARALLEL = 2 #number of tasks of the same type to download in parallel
     MAX_CORE = 3 #number of files to download in parallel
     ACCEPT_COOKIES = [r'(.*\.)?(wikipedia\.org)']
     user_agent = USERAGENT
