@@ -55,8 +55,11 @@ class Downloader_sogirl(Downloader):
 
     def post_processing(self):
         if not self.single:
+            dix=self.dir
             ini = 0
             fin = len(self.urls)
+            if len(os.listdir(dix))!=fin:
+                raise Exception('parts are missing')
             finx = 2044
             ext ='.ts'
             name0 = ''
@@ -68,17 +71,19 @@ class Downloader_sogirl(Downloader):
                     name1 = self.title
                     ext = '.mp4'
                 partes = [str(ele) for ele in range(ini,finx)]
-                run(f'-i concat:{name0}{"|".join(partes)} -c copy "{name1}{ext}"', self.dir)
+                run(f'-i concat:{name0}{"|".join(partes)} -c copy "{name1}{ext}"', dix)
                 if ext == '.mp4':
                     break
                 name0 = name1+ext+'|'
                 name1 = 'x1' if name1=='x0' else 'x0'
                 ini = finx
                 finx += 2044
+                for pa in partes:
+                    os.remove(dix+'/'+pa)
             self.cw.setTitle('Cleaning...'+self.title)
-            os.rename(self.dir+'/'+self.title+'.mp4', self.dir+'.mp4')
-            shutil.rmtree(self.dir)
-            self.cw.setNameAt(0, self.dir+'.mp4')
+            os.rename(dix+'/'+self.title+'.mp4', dix+'.mp4')
+            shutil.rmtree(dix)
+            self.cw.setNameAt(0, dix+'.mp4')
             self.single = True
             self.cw.setTitle(self.title)
 
