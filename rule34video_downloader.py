@@ -10,13 +10,13 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.ssl_ import DEFAULT_CIPHERS
 UAG='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-
+REF='https://rule34video.com/'
 def pythonexter(url):
     comans=[
         "python",
         "import requests",
         f"u = '{url}'",
-        "r = requests.head(u,headers={'User-Agent': '"+UAG+"'})",
+        "r = requests.head(u,headers={'referer':'"+REF+"','User-Agent': '"+UAG+"'})",
         "if r.status_code == 302:",
         "   print(r.headers['Location'])",
         "elif r.status_code < 300:",
@@ -94,7 +94,7 @@ class Downloader_rule34video(Downloader):
     user_agent=UAG
 
     def read(self):
-        self.print_('1.05')
+        self.print_('1.06')
         self.single,self.title,self.urls=get_videos(self.url,self.dir,self.cw)
         self.enableSegment()
 
@@ -104,7 +104,7 @@ def get_videos(url,dirx,cw):
     vids=[]
     singlex='.com/v' in url
     if singlex:
-        vidx=File_rule34video({'urlx':url,'only':True,'referer':'https://rule34video.com/'})
+        vidx=File_rule34video({'referer':REF})
         vidx.getx(url)
         title=vidx['filename']
         vids.append(vidx)
