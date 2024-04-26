@@ -11,12 +11,12 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.ssl_ import DEFAULT_CIPHERS
 UAG='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 REF='https://rule34video.com/'
-def pythonexter(url):
+def pythonexter(url,kuk):
     comans=[
         "python",
         "import requests",
-        f"u = '{url}'",
-        "r = requests.head(u,headers={'referer':'"+REF+"','User-Agent': '"+UAG+"'})",
+        f"u='{url}'",
+        "r=requests.head(u,headers={'Cookie':'PHPSESSID="+kuk+"','User-Agent':'"+UAG+"'})",
         "if r.status_code == 302:",
         "   print(r.headers['Location'])",
         "elif r.status_code < 300:",
@@ -43,7 +43,7 @@ class File_rule34video(File):
         if not self['filex']:
             self.getx(self['urlx'])
         sleep(6)
-        urlse=pythonexter(self['filex'])
+        urlse=pythonexter(self['filex'],self['k'])
         get_print(self.cw)('getx fin '+urlse)
         sesion=requests.session()
         sesion.mount('https://',HTTPAdapter(max_retries=3))
@@ -103,8 +103,10 @@ def get_videos(url,dirx,cw):
     local={dx[dx.rfind('(')+1:dx.rfind('.')]:raiz+'/'+dx for raiz,_,archivos in os.walk(dirx) for dx in archivos}
     vids=[]
     singlex='.com/v' in url
+    res=requests.head(REF)
+    kuk=res.cookies.get('PHPSESSID')
     if singlex:
-        vidx=File_rule34video({'referer':REF})
+        vidx=File_rule34video({'k':kuk})
         vidx.getx(url)
         title=vidx['filename']
         vids.append(vidx)
@@ -168,6 +170,6 @@ def get_videos(url,dirx,cw):
                     continue
                 m1=href.find('/',href.find('.')+6)+1
                 tte=href[m1:href.find('/',m1)]
-                vids.append(local[tte] if tte in local else File_rule34video({'urlx':href,'filex':''}))
+                vids.append(local[tte] if tte in local else File_rule34video({'urlx':href,'filex':'','k':kuk}))
                 url_vids.add(href)
     return singlex,title,vids
