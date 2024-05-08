@@ -83,7 +83,7 @@ class Downloader_rule34video(Downloader):
     user_agent=UAG
 
     def read(self):
-        self.print_('1.07')
+        self.print_('1.08')
         self.single,self.title,self.urls=get_videos(self.url,self.dir,self.cw)
         self.enableSegment()
 
