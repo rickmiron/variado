@@ -3,7 +3,6 @@
 #comment:https://rule34video.com/
 import downloader
 from utils import Downloader,Soup,try_n,get_print,clean_title,get_resolution,File
-import subprocess
 from timee import sleep
 import os
 import requests
