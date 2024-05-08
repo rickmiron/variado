@@ -12,26 +12,14 @@ from requests.packages.urllib3.util.ssl_ import DEFAULT_CIPHERS
 UAG='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 REF='https://rule34video.com/'
 def pythonexter(url,kuk):
-    comans=[
-        "python",
-        "import requests",
-        f"u='{url}'",
-        "r=requests.head(u,headers={'Cookie':'PHPSESSID="+kuk+"','User-Agent':'"+UAG+"'})",
-        "if r.status_code == 302:",
-        "   print(r.headers['Location'])",
-        "elif r.status_code < 300:",
-        "   print(u)",
-        "else:",
-        "   print(r.status_code)",
-        ""
-    ]
-    proceso=subprocess.Popen(["cmd"],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
-    for line in comans:
-        proceso.stdin.write((line+"\n").encode("utf-8"))
-    proceso.stdin.close()
-    output,_=proceso.communicate()
-    output=output.decode("utf-8",errors="ignore")
-    return output.splitlines()[-3]
+    r=requests.head(url,headers={'Cookie':'PHPSESSID='+kuk,'User-Agent':UAG})
+    if r.status_code == 302:
+        res=r.headers['Location']
+    elif r.status_code < 300:
+        res=url
+    else:
+        raise Exception(r.headers)
+    return res
 
 def texto(f):
     return f.text.strip()
