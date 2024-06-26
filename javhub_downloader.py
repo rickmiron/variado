@@ -6,6 +6,7 @@ import downloader
 from utils import Downloader,try_n,LazyUrl,Soup,clean_title,get_resolution
 from io import BytesIO
 import clf2
+S1X='efghijkmnopqrstuvwxyz1789ABCDEFGHJKLNMPQRSTUVWX23456YZabcd'
 class Video:
     def __init__(self,dat,nam,ses):
         self.ses=ses
@@ -14,11 +15,11 @@ class Video:
         self.url=LazyUrl('https://javhub.net/',self.get,self)
 
     def get(self,_):
-        semiu=fp1(self.dat)
-        dataapi=fp2(semiu)
+        dd={ch:idx for idx,ch in enumerate(S1X)}
+        dataapi=fp2(self.dat,dd)
         res=self.ses.post('https://javhub.net/playapi',data='data='+dataapi)
         djson=res.json()
-        return fp1(djson['playurl'])
+        return fp1(djson['playurl'],dd)
 
 class Downloader_javhub(Downloader):
     type = 'javhub'
@@ -38,39 +39,24 @@ class Downloader_javhub(Downloader):
         self.setIcon(thumb)
         self.enableSegment()
 
-def fp1(a1):
-    alfa1 = 'efghijkmnopqrstuvwxyz1789ABCDEFGHJKLNMPQRSTUVWX23456YZabcd'
-    dic1 = {ch: idx for idx, ch in enumerate(alfa1)}
-    arr1 = [0]
+def fp1(a1,dc):
+    arr1=[0]
     for aa in a1:
-        arr1 = [x * 58 for x in arr1]
-        arr1[0] += dic1[aa]
-        qq = 0
+        arr1=[x*58 for x in arr1]
+        arr1[0]+=dc[aa]
+        qq=0
         for i in range(len(arr1)):
-            arr1[i] += qq
-            qq = arr1[i] >> 8
+            arr1[i]+=qq
+            qq=arr1[i] >> 8
             arr1[i] &= 255
         while qq:
             arr1.append(qq & 255)
             qq >>= 8
-    return ''.join(map(chr, arr1[::-1]))
+    return ''.join(map(chr,arr1[::-1]))
 
-def fp2(a2):
-    arr2 = list(map(ord, a2))
-    alfa2 = 'JKLNMPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789ABCDEFGH'
-    arr3 = [0]
-    for byte in arr2:
-        arr3 = [x << 8 for x in arr3]
-        arr3[0] += byte
-        kk = 0
-        for i in range(len(arr3)):
-            arr3[i] += kk
-            kk = arr3[i] // 58
-            arr3[i] %= 58
-        while kk:
-            arr3.append(kk % 58)
-            kk //= 58
-    return ''.join(alfa2[x] for x in arr3[::-1])
+def fp2(a1,dc):
+    s2='JKLNMPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789ABCDEFGH'
+    return ''.join([s2[dc[x]] for x in a1])
 
 def getvid(url,cw):
     res = clf2.solve('https://javhub.net/',cw=cw,timeout=5.0,delay=0.0,check_body=False)
