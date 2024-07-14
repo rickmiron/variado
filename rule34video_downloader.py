@@ -43,30 +43,25 @@ class File_rule34video(File):
         return {'url':urlse,'name':self['filename'],'session':sesion}
 
     def getx(self,url):
-        print_=get_print(self.cw)
-        try:
-            soup=Soup(downloader.read_html(url,user_agent=UAG))
-        except Exception as e:
-            print_(e)
-        title=soup.find('h1',class_='title_video').text.strip()
+        soup=Soup(downloader.read_html(url,user_agent=UAG))
+        title=soup.find('h1').text.strip()
         artis=''
-        for inf in soup.find('div',class_='cols').findAll('div',class_='col'):
-            label=inf.find('div',class_='label').text.strip()
+        for inf in soup.find(class_='cols').findAll(class_='col'):
+            label=inf.find(class_='label').text.strip()
             if label=='Artist':
-                names=inf.findAll('span',class_='name')
+                names=inf.findAll('span')
                 if len(names)<4:
                     artis='-'.join(map(texto,names))
                     break
             elif label=='Uploaded by':
-                artis=inf.find('a', class_='name').text.strip()
+                artis=inf.find('a').text.strip()
         m1=url.find('/',url.find('.')+6)+1
         self['filename']=clean_title(artis+')'+title,n=191)+'('+url[m1:url.find('/',m1)]+'.mp4'
         reso=get_resolution()
-        for a in soup.find('div',class_='video_tools').findAll('div',class_='wrap')[-1].findAll('a'):
+        for a in soup.find(class_='video_tools').findAll(class_='wrap')[-1].findAll('a'):
             if int(a.text.replace('MP4','').replace('p',''))<=reso:
                 file=a.attrs['href']
                 break
-        print_('getfile '+file)
         self['filex']=file
 @Downloader.register
 class Downloader_rule34video(Downloader):
