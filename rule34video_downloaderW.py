@@ -52,12 +52,12 @@ class File_rule34video(File):
         artis=''
         for inf in soup.find('div',class_='cols').findAll('div',class_='col'):
             label=inf.find('div',class_='label').text.strip()
-            if label=='Artist:':
+            if label=='Artist':
                 names=inf.findAll('span',class_='name')
                 if len(names)<4:
                     artis='-'.join(map(texto,names))
                     break
-            elif label=='Uploaded By:':
+            elif label=='Uploaded by':
                 artis=inf.find('a', class_='name').text.strip()
         m1=url.find('/',url.find('.')+6)+1
         self['filename']=clean_title(artis+')'+title,n=191)+'('+url[m1:url.find('/',m1)]+'.mp4'
