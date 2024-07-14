@@ -45,18 +45,19 @@ class File_rule34video(File):
     def getx(self,url):
         soup=Soup(downloader.read_html(url,user_agent=UAG))
         title=soup.find('h1').text.strip()
-        artis=''
+        ats=''
         for inf in soup.find(class_='cols').findAll(class_='col'):
             label=inf.find(class_='label').text.strip()
             if label=='Artist':
                 names=inf.findAll('span')
                 if len(names)<4:
-                    artis='-'.join(map(texto,names))
-                    break
+                    ats='-'.join(map(texto,names))
+                    if ats!='Unknown Artist':
+                        break
             elif label=='Uploaded by':
-                artis=inf.find('a').text.strip()
+                ats=inf.find('a').text.strip()
         m1=url.find('/',url.find('.')+6)+1
-        self['filename']=clean_title(artis+')'+title,n=191)+'('+url[m1:url.find('/',m1)]+'.mp4'
+        self['filename']=clean_title(ats+')'+title,n=191)+'('+url[m1:url.find('/',m1)]+'.mp4'
         reso=get_resolution()
         for a in soup.find(class_='video_tools').findAll(class_='wrap')[-1].findAll('a'):
             if int(a.text.replace('MP4','').replace('p',''))<=reso:
@@ -132,7 +133,7 @@ def get_videos(url,dirx,cw):
         if not title:
             raise Exception('No title')
         print_(title)
-        title=f'{header}]{title}'
+        title=clean_title(f'{header}]{title}')
         view=soup.find('div',class_='pagination')
         ultimo=2
         if view:
