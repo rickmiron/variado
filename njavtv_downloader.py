@@ -31,23 +31,27 @@ class Video:
             soup=Soup(get(url))
         except Exception as e:
             print_(print_error(e))
+
         self.uth=soup.find(id='player')['data-poster']
         self.filename=clean_title(soup.find('h1').text.strip()+'.mp4')
         if len(self.filename)>209:
             self.filename=self.filename[:205]+'.mp4'
         idv=soup.find(id='page-video')['v-scope']
-        un=idv.find('\'')+1
-        idv='https://njav.tv/en/ajax/v/'+idv[un:idv.find('\'',un)]+'/videos'
+        un=idv.find('id: ')+4
+        idv='https://njav.tv/en/ajax/v/'+idv[un:idv.find(',')]+'/videos'
+
         try:
             idv=get(idv)
         except Exception as e:
             print_(print_error(e))
+
         un=idv.find('url')+6
         idv=idv[un:idv.find('"',un)].replace('\\','')
         try:
             soup=Soup(get(idv))
         except Exception as e:
             print_(print_error(e))
+
         idv=soup.find(id='player')['v-scope']
         soup=Soup(f'<p>{idv}</p>')
         idv=soup.string
