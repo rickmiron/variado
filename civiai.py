@@ -45,7 +45,7 @@ def model(url,dix):
         for j in pjs['result']['data']['json']['items']:
             urls.append(Image(j['url'],idm+'/'+str(j['id'])+'.'+j['mimeType'].split('/')[1]).url)
         hss=[h['type']+':'+h['hash'] for h in m['files'][0]['hashes']]
-        soup=Soup(m['description'].replace('<ul>','').replace('</ul>',''))
+        soup=Soup((m['description']or'').replace('<ul>','').replace('</ul>',''))
         tex=[a.text for a in soup.findAll(recursive=False)]
         tex+=[a['href'] for a in soup.findAll('a')]
         texx='ID\n'+idm+'\n\nNAME\n'+m['name']+'\n\nBASEMODEL\n'+m['baseModel']+'\n\nHASHES\n'+'\n'.join(hss)+'\n\nDESCRIPTION\n'+'\n'.join(tex)
