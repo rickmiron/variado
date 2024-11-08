@@ -2,7 +2,7 @@
 #title_en:Civitai
 #comment:https://civitai.com/
 import downloader
-from utils import Downloader,clean_title,Soup,LazyUrl,Session
+from utils import Downloader,clean_title,Soup,LazyUrl,Session,get_print
 import os
 import json
 import requests
@@ -20,10 +20,11 @@ class Downloader_civitai(Downloader):
 
     def read(self):
         self.single=True
-        self.title,self.urls=(model if'm/models/'in self.url else imgs)(self.url,self.dir)
+        self.title,self.urls=(model if'm/models/'in self.url else imgs)(self.url,self.dir,self.cw)
         self.single=False
 
-def model(url,dix):
+def model(url,dix,cw):
+    pt=get_print(cw)
     cok=Session().cookies.get('__Secure-civitai-token')
     urls=[]
     soup=Soup(downloader.read_html(url,user_agent=UAG))
@@ -38,8 +39,7 @@ def model(url,dix):
         idm=str(m['id'])
         if not urls:
             urls.append(Text(dix+'/'+titulo,idx,'\n'.join(tex)).url)
-            ara=m['files'][0]['url'].split('storage.com/')[1].split('/')
-            user=ara[1] if ara[0]=='model' else ara[0]
+            user=str(tejson['props']['pageProps']['trpcState']['json']['queries'][5]['state']['data']['user']['id'])
         rex=requests.get(f'https://civitai.com/api/trpc/image.getInfinite?input=%7B%22json%22%3A%7B%22modelVersionId%22%3A{idm}%2C%22prioritizedUserIds%22%3A%5B{user}%5D%2C%22period%22%3A%22AllTime%22%2C%22sort%22%3A%22Most%20Reactions%22%2C%22limit%22%3A20%2C%22pending%22%3Atrue%2C%22cursor%22%3Anull%2C%22authed%22%3Atrue%7D%2C%22meta%22%3A%7B%22values%22%3A%7B%22cursor%22%3A%5B%22undefined%22%5D%7D%7D%7D')
         pjs=rex.json()
         for j in pjs['result']['data']['json']['items']:
