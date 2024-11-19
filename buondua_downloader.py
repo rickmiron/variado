@@ -18,6 +18,7 @@ class Downloader_buondua(Downloader):
     user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
     
     def read(self):
+        self.print_('1.0')
         goo='/tag/' in self.url
         self.urls, self.filenames, self.title=(get_gall if goo else get_imgs)(self.url,REFERBOUN,self.user_agent,self.cw if goo else '')
 
